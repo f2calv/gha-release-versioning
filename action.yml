@@ -25,9 +25,6 @@ outputs:
 runs:
   using: composite
   steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
 
     - name: gitversion (1 of 2)
       uses: gittools/actions/gitversion/setup@v1
