@@ -3,6 +3,9 @@ author: Alex Vincent
 description: Determines a semantic version for the current commit and tags the repo with this version and creates a release.
 
 inputs:
+  GITHUB_TOKEN:
+    description: i.e. secrets.GITHUB_TOKEN
+    required: true
   tag-prefix:
     description: Prefix the semver, i.e. 1.0.1 or v1.0.1
     required: false
@@ -41,7 +44,7 @@ runs:
     - uses: f2calv/gha-check-release-exists@v2
       id: check-release-exists
       with:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
         ReleaseName: ${{ steps.gitversion.outputs.semVer }}
 
     - name: create release
