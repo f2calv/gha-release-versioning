@@ -22,4 +22,5 @@ on:
 jobs:
   release:
     #TODO: update this to call the action directly?
-    uses: f2calv/gha-workflows/.github/workflows/gha-release-versioning.yml@v1
+    #uses: f2calv/gha-workflows/.github/workflows/gha-release-versioning.yml@v1
+    uses: f2calv/gha-workflows/.github/workflows/gha-release-versioning.yml@f2calv/2024-04-break-out-versioning
