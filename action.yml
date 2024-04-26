@@ -16,6 +16,11 @@ inputs:
     required: false
     type: boolean
     default: true
+  tag-and-release:
+    description: Create a release.
+    required: false
+    type: boolean
+    default: true
 
 outputs:
   semVer:
@@ -43,6 +48,7 @@ runs:
 
     - uses: f2calv/gha-check-release-exists@v2
       id: check-release-exists
+      if: inputs.tag-and-release == true
       with:
         GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
         ReleaseName: ${{ steps.gitversion.outputs.semVer }}
@@ -52,6 +58,7 @@ runs:
       if: |
         steps.check-release-exists.outputs.ReleaseExists == 'false'
           && (github.ref == format('refs/heads/{0}', github.event.repository.default_branch))
+          && inputs.tag-and-release == true
       with:
         tag_name: ${{ inputs.tag-prefix }}${{ steps.gitversion.outputs.fullSemVer }}
         name: ${{ steps.gitversion.outputs.fullSemVer }}
@@ -62,6 +69,7 @@ runs:
         steps.check-release-exists.outputs.ReleaseExists == 'false'
           && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
           && inputs.move-major-tag == true
+          && inputs.tag-and-release == true
       run: |
         git config user.name "GitHub Actions Bot"
         git config user.email "<>"
