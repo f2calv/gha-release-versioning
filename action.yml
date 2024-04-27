@@ -95,6 +95,14 @@ runs:
         echo "semVer=$SEMVER" >> $env:GITHUB_OUTPUT
         echo "fullSemVer=$FULLSEMVER" >> $env:GITHUB_OUTPUT
 
+    - name: semver debug
+      shell: bash
+      run: |
+        echo "SEMVER=$SEMVER"
+        echo "FULLSEMVER=$FULLSEMVER"
+        echo "SEMVER=${{ env.SEMVER }}"
+        echo "FULLSEMVER=${{ env.FULLSEMVER }}"
+
     - uses: f2calv/gha-check-release-exists@v2
       id: check-release-exists
       if: inputs.tag-and-release == 'true'
