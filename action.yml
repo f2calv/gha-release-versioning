@@ -6,6 +6,11 @@ inputs:
   GITHUB_TOKEN:
     description: i.e. secrets.GITHUB_TOKEN
     required: true
+  semVer:
+    description: Pass in an externally generated semantic version, if empty then uses GitVersion.
+    required: false
+    type: string
+    default: ''
   tag-prefix:
     description: Prefix the semver, i.e. 1.0.1 or v1.0.1
     required: false
@@ -17,7 +22,7 @@ inputs:
     type: boolean
     default: true
   tag-and-release:
-    description: Create a release.
+    description: Sets a Git tag and creates a corresponding release.
     required: false
     type: boolean
     default: true
@@ -25,33 +30,76 @@ inputs:
 outputs:
   semVer:
     description: i.e. 1.2.3
-    value: ${{ steps.gitversion.outputs.semVer }}
+    value: ${{ steps.semver_select.outputs.semVer }}
   fullSemVer:
     description: i.e. 1.2.3-feature-my-feature.12
-    value: ${{ steps.gitversion.outputs.fullSemVer }}
+    value: ${{ steps.semver_select.outputs.fullSemVer }}
 
 runs:
   using: composite
   steps:
 
-    - name: gitversion (1 of 2)
+    - name: gitversion (1 of 3)
+      if: inputs.semVer == ''
+      run: |
+        FILE=GitVersion.yml
+        if [[ -f "$FILE" ]]; then
+          echo "$FILE exists"
+        else
+          echo "::error file=GitVersion.yml::Repository versioning is managed by GitVersion, '$FILE' is therefore required!"
+        fi
+
+    - name: gitversion (1 of 3)
       uses: gittools/actions/gitversion/setup@v1
+      if: inputs.semVer == ''
       with:
         versionSpec: 5.x
 
-    - name: gitversion (2 of 2)
-      id: gitversion
+    - name: gitversion (2 of 3)
       uses: gittools/actions/gitversion/execute@v1
+      if: inputs.semVer == ''
+      id: gitversion
       with:
         useConfigFile: true
         additionalArguments: /nofetch
+
+    - name: semver select
+      shell: bash
+      id: semver_select
+      run: |
+        SEMVER=${{ inputs.semVer }}
+
+        if [ -z "$SEMVER" ]; then
+          SEMVER=${{ steps.gitversion.outputs.semVer }}
+          FULLSEMVER=${{ steps.gitversion.outputs.fullSemVer }}
+          VERSION_MAJOR=${{ steps.gitversion.outputs.major }}
+          VERSION_MINOR=${{ steps.gitversion.outputs.minor }}
+          VERSION_PATCH=${{ steps.gitversion.outputs.patch }}
+        else
+          FULLSEMVER=${{ inputs.semVer }}
+          VERSION="$1"
+          VERSION="${VERSION#[vV]}"
+          VERSION_MAJOR="${VERSION%%\.*}"
+          VERSION_MINOR="${VERSION#*.}"
+          VERSION_MINOR="${VERSION_MINOR%.*}"
+          VERSION_PATCH="${VERSION##*.}"
+        fi
+
+        echo "SEMVER=$SEMVER" >> $GITHUB_ENV
+        echo "FULLSEMVER=$FULLSEMVER" >> $GITHUB_ENV
+        echo "VERSION_MAJOR=$VERSION_MAJOR" >> $GITHUB_ENV
+        echo "VERSION_MINOR=$VERSION_MINOR" >> $GITHUB_ENV
+        echo "VERSION_PATCH=$VERSION_PATCH" >> $GITHUB_ENV
+
+        echo "semVer=$SEMVER" >> $env:GITHUB_OUTPUT
+        echo "fullSemVer=$FULLSEMVER" >> $env:GITHUB_OUTPUT
 
     - uses: f2calv/gha-check-release-exists@v2
       id: check-release-exists
       if: inputs.tag-and-release == true
       with:
         GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
-        ReleaseName: ${{ steps.gitversion.outputs.semVer }}
+        ReleaseName: $SEMVER
 
     - name: create release
       uses: softprops/action-gh-release@v2
@@ -60,8 +108,8 @@ runs:
           && (github.ref == format('refs/heads/{0}', github.event.repository.default_branch))
           && inputs.tag-and-release == true
       with:
-        tag_name: ${{ inputs.tag-prefix }}${{ steps.gitversion.outputs.fullSemVer }}
-        name: ${{ steps.gitversion.outputs.fullSemVer }}
+        tag_name: ${{ inputs.tag-prefix }}$FULLSEMVER
+        name: $FULLSEMVER
 
     - name: git apply/move major tag
       shell: bash
@@ -74,12 +122,12 @@ runs:
         git config user.name "GitHub Actions Bot"
         git config user.email "<>"
 
-        TAG=${{ inputs.tag-prefix }}${{ steps.gitversion.outputs.major }}
+        TAG=${{ inputs.tag-prefix }}$VERSION_MAJOR
         echo "TAG=$TAG"
         git tag -fa $TAG -m "move $TAG tag"
         git push origin $TAG --force
 
-        TAG=${{ inputs.tag-prefix }}${{ steps.gitversion.outputs.major }}.${{ steps.gitversion.outputs.minor }}
+        TAG=${{ inputs.tag-prefix }}$VERSION_MAJOR.$VERSION_MINOR
         echo "TAG=$TAG"
         git tag -fa $TAG -m "move $TAG tag"
         git push origin $TAG --force
