@@ -92,8 +92,14 @@ runs:
         echo "VERSION_MINOR=$VERSION_MINOR" >> $GITHUB_ENV
         echo "VERSION_PATCH=$VERSION_PATCH" >> $GITHUB_ENV
 
-        echo "semVer=$SEMVER" >> $GITHUB_OUTPUT
-        echo "fullSemVer=$FULLSEMVER" >> $GITHUB_OUTPUT
+        echo "semVer=$(echo $SEMVER)" >> $GITHUB_OUTPUT
+        echo "fullSemVer=$(echo $FULLSEMVER)" >> $GITHUB_OUTPUT
+
+    - shell: bash
+      name: debug outputs
+      run : |
+        echo "${{ steps.semver_select.outputs.semVer }}"
+        echo "${{ steps.semver_select.outputs.fullSemVer }}"
 
     - uses: f2calv/gha-check-release-exists@v2
       id: check-release-exists
