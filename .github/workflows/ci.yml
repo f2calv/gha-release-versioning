@@ -19,3 +19,14 @@ jobs:
     uses: f2calv/gha-workflows/.github/workflows/gha-release-versioning.yml@f2calv/2024-05-image-tagging
     permissions:
       contents: write
+  
+  debug:
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "semVer=${{ needs.release.outputs.semVer }}"
+          echo "fullSemVer=${{ needs.release.outputs.fullSemVer }}"
+          echo "major=${{ needs.release.outputs.major }}"
+          echo "minor=${{ needs.release.outputs.minor }}"
+          echo "patch=${{ needs.release.outputs.patch }}"
