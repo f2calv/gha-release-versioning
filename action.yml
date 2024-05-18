@@ -4,7 +4,7 @@ description: Determines a semantic version for the current commit, optionally ta
 
 inputs:
   GITHUB_TOKEN:
-    description: e.g. ${{ secrets.GITHUB_TOKEN }}
+    description: e.g. {{ secrets.GITHUB_TOKEN }}
     required: true
   semVer:
     description: Pass in an externally generated semantic version, if empty then uses GitVersion.
