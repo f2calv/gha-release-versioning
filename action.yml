@@ -29,11 +29,20 @@ inputs:
 
 outputs:
   semVer:
-    description: e.g. 1.2.3
+    description: e.g. 1.2.301
     value: ${{ steps.semver_select.outputs.semVer }}
   fullSemVer:
-    description: e.g. 1.2.3-feature-my-feature.12
+    description: e.g. 1.2.301-feature-my-feature.12
     value: ${{ steps.semver_select.outputs.fullSemVer }}
+  major:
+    description: e.g. 1
+    value: ${{ steps.semver_select.outputs.major }}
+  minor:
+    description: e.g. 2
+    value: ${{ steps.semver_select.outputs.minor }}
+  patch:
+    description: e.g. 301
+    value: ${{ steps.semver_select.outputs.patch }}
 
 runs:
   using: composite
@@ -73,27 +82,31 @@ runs:
         if [ -z "$SEMVER" ]; then
           SEMVER=${{ steps.gitversion.outputs.semVer }}
           FULLSEMVER=${{ steps.gitversion.outputs.fullSemVer }}
-          VERSION_MAJOR=${{ steps.gitversion.outputs.major }}
-          VERSION_MINOR=${{ steps.gitversion.outputs.minor }}
-          VERSION_PATCH=${{ steps.gitversion.outputs.patch }}
+          MAJOR=${{ steps.gitversion.outputs.major }}
+          MINOR=${{ steps.gitversion.outputs.minor }}
+          PATCH=${{ steps.gitversion.outputs.patch }}
         else
+          #https://gist.github.com/bitmvr/9ed42e1cc2aac799b123de9fdc59b016
           FULLSEMVER=${{ inputs.semVer }}
           VERSION="$1"
           VERSION="${VERSION#[vV]}"
-          VERSION_MAJOR="${VERSION%%\.*}"
-          VERSION_MINOR="${VERSION#*.}"
-          VERSION_MINOR="${VERSION_MINOR%.*}"
-          VERSION_PATCH="${VERSION##*.}"
+          MAJOR="${VERSION%%\.*}"
+          MINOR="${VERSION#*.}"
+          MINOR="${MINOR%.*}"
+          PATCH="${VERSION##*.}"
         fi
 
         echo "SEMVER=$SEMVER" >> $GITHUB_ENV
         echo "FULLSEMVER=$FULLSEMVER" >> $GITHUB_ENV
-        echo "VERSION_MAJOR=$VERSION_MAJOR" >> $GITHUB_ENV
-        echo "VERSION_MINOR=$VERSION_MINOR" >> $GITHUB_ENV
-        echo "VERSION_PATCH=$VERSION_PATCH" >> $GITHUB_ENV
+        echo "MAJOR=$MAJOR" >> $GITHUB_ENV
+        echo "MINOR=$MINOR" >> $GITHUB_ENV
+        echo "PATCH=$PATCH" >> $GITHUB_ENV
 
         echo "semVer=$(echo $SEMVER)" >> $GITHUB_OUTPUT
         echo "fullSemVer=$(echo $FULLSEMVER)" >> $GITHUB_OUTPUT
+        echo "major=$(echo $MAJOR)" >> $GITHUB_OUTPUT
+        echo "minor=$(echo $MINOR)" >> $GITHUB_OUTPUT
+        echo "patch=$(echo $PATCH)" >> $GITHUB_OUTPUT
 
     - uses: f2calv/gha-check-release-exists@v2
       id: check-release-exists
