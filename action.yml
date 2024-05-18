@@ -1,10 +1,10 @@
 name: gha-release-versioning
 author: Alex Vincent
-description: Determines a semantic version for the current commit and tags the repo with this version and creates a release.
+description: Determines a semantic version for the current commit, optionally tags the repo with this version and creates a release.
 
 inputs:
   GITHUB_TOKEN:
-    description: i.e. secrets.GITHUB_TOKEN
+    description: e.g. ${{ secrets.GITHUB_TOKEN }}
     required: true
   semVer:
     description: Pass in an externally generated semantic version, if empty then uses GitVersion.
@@ -12,12 +12,12 @@ inputs:
     type: string
     default: ''
   tag-prefix:
-    description: Prefix the semver, i.e. 1.0.1 or v1.0.1
+    description: Prefix the semver, e.g. 1.0.1 or v1.0.1
     required: false
     type: string
     default: v
   move-major-tag:
-    description: Create and/or move major version tag, i.e. when creating v1.0.2 then move v1 tag up from the v1.0.1 commit.
+    description: Create and/or move major version tag, e.g. when creating v1.0.2 then move v1 tag up from the v1.0.1 commit.
     required: false
     type: boolean
     default: true
@@ -29,10 +29,10 @@ inputs:
 
 outputs:
   semVer:
-    description: i.e. 1.2.3
+    description: e.g. 1.2.3
     value: ${{ steps.semver_select.outputs.semVer }}
   fullSemVer:
-    description: i.e. 1.2.3-feature-my-feature.12
+    description: e.g. 1.2.3-feature-my-feature.12
     value: ${{ steps.semver_select.outputs.fullSemVer }}
 
 runs:
