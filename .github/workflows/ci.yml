@@ -20,7 +20,7 @@ jobs:
     permissions:
       contents: write
   
-  debug:
+  test:
     needs: release
     runs-on: ubuntu-latest
     steps:
