@@ -136,12 +136,12 @@ runs:
         git config user.name "GitHub Actions Bot"
         git config user.email "<>"
 
-        TAG=${{ inputs.tag-prefix }}$VERSION_MAJOR
+        TAG=${{ inputs.tag-prefix }}$MAJOR
         echo "TAG=$TAG"
         git tag -fa $TAG -m "move $TAG tag"
         git push origin $TAG --force
 
-        TAG=${{ inputs.tag-prefix }}$VERSION_MAJOR.$VERSION_MINOR
+        TAG=${{ inputs.tag-prefix }}$MAJOR.$MINOR
         echo "TAG=$TAG"
         git tag -fa $TAG -m "move $TAG tag"
         git push origin $TAG --force
