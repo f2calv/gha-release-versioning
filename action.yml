@@ -93,12 +93,18 @@ runs:
       run: |
         dotnet tool update -g GitVersion.Tool
         $HOME/.dotnet/tools/dotnet-gitversion ${{ github.workspace }} /nofetch > GitVersion.json
+        cat GitVersion.json
 
     - name: gitversion container (1 of 1)
       shell: bash
       if: inputs.semVer == '' && inputs.gv-source == 'container'
       run: |
+        docker run --name fred -v "$(pwd):/repo" gittools/gitversion /repo /nofetch
+        echo "test1"
+        docker logs fred
+        echo "test2"
         docker run --rm -v "$(pwd):/repo" gittools/gitversion /repo /nofetch > GitVersion.json
+        cat GitVersion.json
 
     - name: semver select
       shell: bash
