@@ -33,7 +33,7 @@ inputs:
   gv-source:
     description: Choose an installation source for GitVersion. Options include container, dotnet & action.
     type: string
-    default: dotnet
+    default: action
   # gv-version:
   #   description: Choose a version of GitVersion.
   #   type: string
