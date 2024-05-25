@@ -105,8 +105,8 @@ runs:
       run: |
         SEMVER=${{ inputs.semVer }}
 
-        if [ -z "$SEMVER" ]; then
-          if [ "${{ inputs.gv-source }}" == "action" ]; then
+        if [[ -z "$SEMVER" ]]; then
+          if [[ "${{ inputs.gv-source }}" == "action" ]]; then
             SEMVER=${{ steps.gitversion_action.outputs.semVer }}
             FULLSEMVER=${{ steps.gitversion_action.outputs.fullSemVer }}
             MAJOR=${{ steps.gitversion_action.outputs.major }}
