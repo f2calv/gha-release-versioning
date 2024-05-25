@@ -94,7 +94,6 @@ runs:
     - name: gitversion dotnet (2 of 2)
       shell: bash
       if: inputs.semVer == '' && inputs.gv-source == 'dotnet'
-      id: gitversion_dotnet
       run: |
         dotnet tool update -g GitVersion.Tool
         $HOME/.dotnet/tools/dotnet-gitversion ${{ github.workspace }} /nofetch > GitVersion.json
@@ -112,11 +111,11 @@ runs:
 
         if [ -z "$SEMVER" ]; then
           if [ "${{ inputs.gv-source }}" == "action" ]; then
-            SEMVER=${{ steps.gitversion.outputs.semVer }}
-            FULLSEMVER=${{ steps.gitversion.outputs.fullSemVer }}
-            MAJOR=${{ steps.gitversion.outputs.major }}
-            MINOR=${{ steps.gitversion.outputs.minor }}
-            PATCH=${{ steps.gitversion.outputs.patch }}
+            SEMVER=${{ steps.gitversion_action.outputs.semVer }}
+            FULLSEMVER=${{ steps.gitversion_action.outputs.fullSemVer }}
+            MAJOR=${{ steps.gitversion_action.outputs.major }}
+            MINOR=${{ steps.gitversion_action.outputs.minor }}
+            PATCH=${{ steps.gitversion_action.outputs.patch }}
           else
             SEMVER=$(jq '.SemVer' GitVersion.json | xargs)
             FULLSEMVER=$(jq '.FullSemVer' GitVersion.json | xargs)
