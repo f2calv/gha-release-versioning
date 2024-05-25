@@ -98,7 +98,7 @@ runs:
       shell: bash
       if: inputs.semVer == '' && inputs.gv-source == 'container'
       run: |
-        docker run --rm -v "$(pwd):/repo" gittools/gitversion /repo > GitVersion.json
+        docker run --rm -v "$(pwd):/repo" gittools/gitversion /repo /nofetch > GitVersion.json
 
     - name: semver select
       shell: bash
