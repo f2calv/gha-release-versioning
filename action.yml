@@ -26,65 +26,104 @@ inputs:
     required: false
     type: boolean
     default: true
+  gv-config:
+    description: Configuration filename that GitVersion will use.
+    type: string
+    default: GitVersion.yml
+  gv-source:
+    description: Choose an installation source for GitVersion. Options include container, dotnet & action.
+    type: string
+    default: container
+  # gv-version:
+  #   description: Choose a version of GitVersion.
+  #   type: string
+  #   default: latest
 
 outputs:
   semVer:
     description: e.g. 1.2.301
-    value: ${{ steps.semver_select.outputs.semVer }}
+    value: ${{ steps.semver_output.outputs.semVer }}
   fullSemVer:
     description: e.g. 1.2.301-feature-my-feature.12
-    value: ${{ steps.semver_select.outputs.fullSemVer }}
+    value: ${{ steps.semver_output.outputs.fullSemVer }}
   major:
     description: e.g. 1
-    value: ${{ steps.semver_select.outputs.major }}
+    value: ${{ steps.semver_output.outputs.major }}
   minor:
     description: e.g. 2
-    value: ${{ steps.semver_select.outputs.minor }}
+    value: ${{ steps.semver_output.outputs.minor }}
   patch:
     description: e.g. 301
-    value: ${{ steps.semver_select.outputs.patch }}
+    value: ${{ steps.semver_output.outputs.patch }}
 
 runs:
   using: composite
   steps:
 
-    - name: gitversion (1 of 3)
+    - name: gitversion config check
       shell: bash
-      if: inputs.semVer == ''
+      if: inputs.semVer == '' && inputs.gv-config != ''
       run: |
-        FILE=GitVersion.yml
+        FILE=${{ inputs.gv-config }}
         if [[ -f "$FILE" ]]; then
           echo "$FILE exists"
         else
-          echo "::error file=GitVersion.yml::Repository versioning is managed by GitVersion, '$FILE' is therefore required!"
+          echo "::error file=${{ inputs.gv-config }}::Repository versioning is managed by GitVersion, '$FILE' is therefore required!"
         fi
 
-    - name: gitversion (1 of 3)
+    - name: gitversion action (1 of 2)
       uses: gittools/actions/gitversion/setup@v1
-      if: inputs.semVer == ''
+      if: inputs.semVer == '' && inputs.gv-source == 'action'
       with:
         versionSpec: 5.x
 
-    - name: gitversion (2 of 3)
+    - name: gitversion action (2 of 2)
       uses: gittools/actions/gitversion/execute@v1
-      if: inputs.semVer == ''
-      id: gitversion
+      if: inputs.semVer == '' && inputs.gv-source == 'action'
+      id: gitversion_action
       with:
         useConfigFile: true
         additionalArguments: /nofetch
 
+    - name: gitversion dotnet (1 of 2)
+      uses: actions/setup-dotnet@v4
+      if: inputs.semVer == '' && inputs.gv-source == 'dotnet'
+      with:
+        dotnet-version: 8.0.x
+
+    - name: gitversion dotnet (2 of 2)
+      shell: bash
+      if: inputs.semVer == '' && inputs.gv-source == 'dotnet'
+      id: gitversion_dotnet
+      run: |
+        dotnet tool update -g GitVersion.Tool
+        $HOME/.dotnet/tools/dotnet-gitversion ${{ github.workspace }} /nofetch > GitVersion.json
+
+    - name: gitversion container (1 of 1)
+      shell: bash
+      if: inputs.semVer == '' && inputs.gv-source == 'container'
+      run: |
+        docker run --rm -v "$(pwd):/repo" gittools/gitversion /repo > GitVersion.json
+
     - name: semver select
       shell: bash
-      id: semver_select
       run: |
         SEMVER=${{ inputs.semVer }}
 
         if [ -z "$SEMVER" ]; then
-          SEMVER=${{ steps.gitversion.outputs.semVer }}
-          FULLSEMVER=${{ steps.gitversion.outputs.fullSemVer }}
-          MAJOR=${{ steps.gitversion.outputs.major }}
-          MINOR=${{ steps.gitversion.outputs.minor }}
-          PATCH=${{ steps.gitversion.outputs.patch }}
+          if [ "${{ inputs.gv-source }}" == "action" ]; then
+            SEMVER=${{ steps.gitversion.outputs.semVer }}
+            FULLSEMVER=${{ steps.gitversion.outputs.fullSemVer }}
+            MAJOR=${{ steps.gitversion.outputs.major }}
+            MINOR=${{ steps.gitversion.outputs.minor }}
+            PATCH=${{ steps.gitversion.outputs.patch }}
+          else
+            SEMVER=$(jq '.SemVer' GitVersion.json | xargs)
+            FULLSEMVER=$(jq '.FullSemVer' GitVersion.json | xargs)
+            MAJOR=$(jq '.Major' GitVersion.json | xargs)
+            MINOR=$(jq '.Minor' GitVersion.json | xargs)
+            PATCH=$(jq '.Patch' GitVersion.json | xargs)
+          fi
         else
           #https://gist.github.com/bitmvr/9ed42e1cc2aac799b123de9fdc59b016
           FULLSEMVER=${{ inputs.semVer }}
@@ -102,6 +141,10 @@ runs:
         echo "MINOR=$MINOR" >> $GITHUB_ENV
         echo "PATCH=$PATCH" >> $GITHUB_ENV
 
+    - name: semver output
+      shell: bash
+      id: semver_output
+      run: |
         echo "semVer=$(echo $SEMVER)" >> $GITHUB_OUTPUT
         echo "fullSemVer=$(echo $FULLSEMVER)" >> $GITHUB_OUTPUT
         echo "major=$(echo $MAJOR)" >> $GITHUB_OUTPUT
