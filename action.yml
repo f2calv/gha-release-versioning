@@ -102,7 +102,7 @@ runs:
         git branch
         docker run --name gvtest -v "$(pwd):/repo" gittools/gitversion /repo /nofetch
         docker logs gvtest
-        docker run --name gvtest -v "$(pwd):/repo" gittools/gitversion /repo /nofetch > GitVersion.json
+        docker run -v "$(pwd):/repo" gittools/gitversion /repo /nofetch > GitVersion.json
         # docker run --name gvtest --entrypoint "" -v "$(pwd):/repo" gittools/gitversion /bin/bash -c "git config --global --add safe.directory '*'; /tools/dotnet-gitversion /repo"
         # # docker run --name gvtest -v "$(pwd):/repo" gittools/gitversion /repo /nofetch
         # echo "test1"
