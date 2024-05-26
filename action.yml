@@ -99,15 +99,15 @@ runs:
       shell: bash
       if: inputs.semVer == '' && inputs.gv-source == 'container'
       run: |
-
         git branch
-        docker run --name fred --entrypoint "" -v "$(pwd):/repo" gittools/gitversion /bin/bash -c "git config --global --add safe.directory '*'; /tools/dotnet-gitversion /repo"
-        # docker run --name fred -v "$(pwd):/repo" gittools/gitversion /repo /nofetch
-        echo "test1"
-        docker logs fred
-        echo "test2"
-        #docker run --rm -v "$(pwd):/repo" gittools/gitversion /repo /nofetch > GitVersion.json
-        docker run --entrypoint "" -v "$(pwd):/repo" gittools/gitversion /bin/bash -c "git config --global --add safe.directory '*'; /tools/dotnet-gitversion /repo" > GitVersion.json
+        docker run -v "$(pwd):/repo" gittools/gitversion /repo /nofetch > GitVersion.json
+        # docker run --name fred --entrypoint "" -v "$(pwd):/repo" gittools/gitversion /bin/bash -c "git config --global --add safe.directory '*'; /tools/dotnet-gitversion /repo"
+        # # docker run --name fred -v "$(pwd):/repo" gittools/gitversion /repo /nofetch
+        # echo "test1"
+        # docker logs fred
+        # echo "test2"
+        # #docker run --rm -v "$(pwd):/repo" gittools/gitversion /repo /nofetch > GitVersion.json
+        # docker run --entrypoint "" -v "$(pwd):/repo" gittools/gitversion /bin/bash -c "git config --global --add safe.directory '*'; /tools/dotnet-gitversion /repo" > GitVersion.json
         cat GitVersion.json
 
     - name: semver select
