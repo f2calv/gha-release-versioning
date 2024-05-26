@@ -99,7 +99,7 @@ runs:
       shell: bash
       if: inputs.semVer == '' && inputs.gv-source == 'container'
       run: |
-      
+
         git branch
         docker run --name fred --entrypoint "" -v "$(pwd):/repo" gittools/gitversion /bin/bash -c "git config --global --add safe.directory '*'; /tools/dotnet-gitversion /repo /nofetch"
         # docker run --name fred -v "$(pwd):/repo" gittools/gitversion /repo /nofetch
@@ -107,7 +107,7 @@ runs:
         docker logs fred
         echo "test2"
         #docker run --rm -v "$(pwd):/repo" gittools/gitversion /repo /nofetch > GitVersion.json
-        docker run --name fred --entrypoint "" -v "$(pwd):/repo" gittools/gitversion /bin/bash -c "git config --global --add safe.directory '*'; /tools/dotnet-gitversion /repo /nofetch" > GitVersion.json
+        docker run --entrypoint "" -v "$(pwd):/repo" gittools/gitversion /bin/bash -c "git config --global --add safe.directory '*'; /tools/dotnet-gitversion /repo /nofetch" > GitVersion.json
         cat GitVersion.json
 
     - name: semver select
