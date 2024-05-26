@@ -100,11 +100,13 @@ runs:
       if: inputs.semVer == '' && inputs.gv-source == 'container'
       run: |
         git branch
-        docker run -v "$(pwd):/repo" gittools/gitversion /repo /nofetch > GitVersion.json
-        # docker run --name fred --entrypoint "" -v "$(pwd):/repo" gittools/gitversion /bin/bash -c "git config --global --add safe.directory '*'; /tools/dotnet-gitversion /repo"
-        # # docker run --name fred -v "$(pwd):/repo" gittools/gitversion /repo /nofetch
+        docker run --name gvtest -v "$(pwd):/repo" gittools/gitversion /repo /nofetch
+        docker logs gvtest
+        docker run --name gvtest -v "$(pwd):/repo" gittools/gitversion /repo /nofetch > GitVersion.json
+        # docker run --name gvtest --entrypoint "" -v "$(pwd):/repo" gittools/gitversion /bin/bash -c "git config --global --add safe.directory '*'; /tools/dotnet-gitversion /repo"
+        # # docker run --name gvtest -v "$(pwd):/repo" gittools/gitversion /repo /nofetch
         # echo "test1"
-        # docker logs fred
+        # docker logs gvtest
         # echo "test2"
         # #docker run --rm -v "$(pwd):/repo" gittools/gitversion /repo /nofetch > GitVersion.json
         # docker run --entrypoint "" -v "$(pwd):/repo" gittools/gitversion /bin/bash -c "git config --global --add safe.directory '*'; /tools/dotnet-gitversion /repo" > GitVersion.json
