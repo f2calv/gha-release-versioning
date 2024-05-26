@@ -2,14 +2,10 @@ mode: MainLine
 branches:
   main:
     regex: ^main$
-    tag: ""
+    tag: ''
   feature:
     regex: ^features?[/-]
     tag: useBranchName
-  preview:
-    regex: ^preview?[/-]
-    tag: preview-{BranchName}
-    source-branches: ["main"]
 ignore:
   sha: []
 merge-message-formats: {}
