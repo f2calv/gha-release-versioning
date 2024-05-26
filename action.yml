@@ -99,6 +99,7 @@ runs:
       shell: bash
       if: inputs.semVer == '' && inputs.gv-source == 'container'
       run: |
+      
         git branch
         docker run --name fred --entrypoint "" -v "$(pwd):/repo" gittools/gitversion /bin/bash -c "git config --global --add safe.directory '*'; /tools/dotnet-gitversion /repo /nofetch"
         # docker run --name fred -v "$(pwd):/repo" gittools/gitversion /repo /nofetch
