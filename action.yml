@@ -99,6 +99,7 @@ runs:
       shell: bash
       if: inputs.semVer == '' && inputs.gv-source == 'container'
       run: |
+        git config --global --add safe.directory /repo
         docker run --name fred -v "$(pwd):/repo" gittools/gitversion /repo /nofetch
         echo "test1"
         docker logs fred
