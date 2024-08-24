@@ -4,7 +4,7 @@ description: Determines a semantic version for the current commit, optionally ta
 
 inputs:
   GITHUB_TOKEN:
-    description: e.g. USD{{ secrets.GITHUB_TOKEN }}
+    description: e.g. {{ secrets.GITHUB_TOKEN }}
     required: true
   semVer:
     description: Pass in an externally generated semantic version, if empty then uses GitVersion.
@@ -34,6 +34,10 @@ inputs:
     description: Choose an installation source for GitVersion, options include container, dotnet & actions.
     type: string
     default: actions
+  gv-spec:
+    description: Choose a version specification for GitVersion.
+    type: string
+    default: 5.x
 
 outputs:
   semVer:
@@ -68,13 +72,13 @@ runs:
         fi
 
     - name: gitversion actions (1 of 2)
-      uses: gittools/actions/gitversion/setup@v1
+      uses: gittools/actions/gitversion/setup@v3
       if: inputs.semVer == '' && inputs.gv-source == 'actions'
       with:
-        versionSpec: 5.x
+        versionSpec: ${{ inputs.gv-spec }}
 
     - name: gitversion actions (2 of 2)
-      uses: gittools/actions/gitversion/execute@v1
+      uses: gittools/actions/gitversion/execute@v3
       if: inputs.semVer == '' && inputs.gv-source == 'actions'
       id: gitversion_actions
       with:
@@ -99,7 +103,7 @@ runs:
       shell: bash
       if: inputs.semVer == '' && inputs.gv-source == 'container'
       run: |
-        docker run --rm -v "${{ github.workspace }}:/repo" gittools/gitversion /repo /nofetch > GitVersion.json
+        docker run --rm -v "${{ github.workspace }}:/repo" - --env GITHUB_ACTIONS=true --env GITHUB_REF=$(GITHUB_REF) gittools/gitversion /repo /nofetch > GitVersion.json
         cat GitVersion.json
 
     - name: semver select
