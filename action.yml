@@ -72,13 +72,13 @@ runs:
         fi
 
     - name: gitversion actions (1 of 2)
-      uses: gittools/actions/gitversion/setup@v3
+      uses: gittools/actions/gitversion/setup@v2
       if: inputs.semVer == '' && inputs.gv-source == 'actions'
       with:
         versionSpec: ${{ inputs.gv-spec }}
 
     - name: gitversion actions (2 of 2)
-      uses: gittools/actions/gitversion/execute@v3
+      uses: gittools/actions/gitversion/execute@v2
       if: inputs.semVer == '' && inputs.gv-source == 'actions'
       id: gitversion_actions
       with:
