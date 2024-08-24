@@ -40,7 +40,10 @@ inputs:
     default: 5.x
 
 outputs:
-  semVer:
+  version:
+    description: e.g. 1.2.301
+    value: ${{ steps.semver_output.outputs.semVer }}
+  semVer: #TODO: consider deprecation of this output in favour of 'version'?
     description: e.g. 1.2.301
     value: ${{ steps.semver_output.outputs.semVer }}
   fullSemVer:
@@ -55,6 +58,9 @@ outputs:
   patch:
     description: e.g. 301
     value: ${{ steps.semver_output.outputs.patch }}
+  release-exists:
+    description: Does a GitHub Release exist with this version?
+    value: ${{ steps.check-release-exists.outputs.ReleaseExists }}
 
 runs:
   using: composite
