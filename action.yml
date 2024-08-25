@@ -160,7 +160,6 @@ runs:
 
     - uses: f2calv/gha-check-release-exists@v2
       id: check-release-exists
-      if: inputs.tag-and-release == 'true'
       with:
         GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
         ReleaseName: $SEMVER
