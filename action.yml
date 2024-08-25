@@ -42,25 +42,25 @@ inputs:
 outputs:
   version:
     description: e.g. 1.2.301
-    value: ${{ steps.semver_output.outputs.semVer }}
+    value: ${{ steps.set_output.outputs.semVer }}
   semVer: #TODO: consider deprecation of this output in favour of 'version'?
     description: e.g. 1.2.301
-    value: ${{ steps.semver_output.outputs.semVer }}
+    value: ${{ steps.set_output.outputs.semVer }}
   fullSemVer:
     description: e.g. 1.2.301-feature-my-feature.12
-    value: ${{ steps.semver_output.outputs.fullSemVer }}
+    value: ${{ steps.set_output.outputs.fullSemVer }}
   major:
     description: e.g. 1
-    value: ${{ steps.semver_output.outputs.major }}
+    value: ${{ steps.set_output.outputs.major }}
   minor:
     description: e.g. 2
-    value: ${{ steps.semver_output.outputs.minor }}
+    value: ${{ steps.set_output.outputs.minor }}
   patch:
     description: e.g. 301
-    value: ${{ steps.semver_output.outputs.patch }}
+    value: ${{ steps.set_output.outputs.patch }}
   release-exists:
     description: Does a GitHub Release exist with this version?
-    value: ${{ steps.check-release-exists.outputs.ReleaseExists }}
+    value: ${{ steps.set_output.outputs.release-exists }}
 
 runs:
   using: composite
@@ -148,21 +148,22 @@ runs:
         echo "MINOR=$MINOR" >> $GITHUB_ENV
         echo "PATCH=$PATCH" >> $GITHUB_ENV
 
+    - uses: f2calv/gha-check-release-exists@v2
+      id: check-release-exists
+      with:
+        GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
+        ReleaseName: $SEMVER
+
     - name: semver output
       shell: bash
-      id: semver_output
+      id: set_output
       run: |
         echo "semVer=$(echo $SEMVER)" >> $GITHUB_OUTPUT
         echo "fullSemVer=$(echo $FULLSEMVER)" >> $GITHUB_OUTPUT
         echo "major=$(echo $MAJOR)" >> $GITHUB_OUTPUT
         echo "minor=$(echo $MINOR)" >> $GITHUB_OUTPUT
         echo "patch=$(echo $PATCH)" >> $GITHUB_OUTPUT
-
-    - uses: f2calv/gha-check-release-exists@v2
-      id: check-release-exists
-      with:
-        GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
-        ReleaseName: $SEMVER
+        echo "release-exists=${{ steps.check-release-exists.outputs.ReleaseExists }}" >> $GITHUB_OUTPUT
 
     - name: create release
       uses: softprops/action-gh-release@v2
