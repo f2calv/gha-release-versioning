@@ -92,7 +92,7 @@ runs:
         additionalArguments: /nofetch
 
     - name: gitversion dotnet (1 of 2)
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v5
       if: inputs.semVer == '' && inputs.gv-source == 'dotnet'
       with:
         dotnet-version: 8.0.x
