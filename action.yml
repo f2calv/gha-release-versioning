@@ -43,8 +43,8 @@ outputs:
   version:
     description: e.g. 1.2.301
     value: ${{ steps.set_output.outputs.semVer }}
-  semVer: #TODO: consider deprecation of this output in favour of 'version'?
-    description: e.g. 1.2.301
+  semVer:
+    description: Deprecated - use 'version' instead. e.g. 1.2.301
     value: ${{ steps.set_output.outputs.semVer }}
   fullSemVer:
     description: e.g. 1.2.301-feature-my-feature.12
@@ -109,13 +109,13 @@ runs:
       shell: bash
       if: inputs.semVer == '' && inputs.gv-source == 'container'
       run: |
-        docker run --rm -v "${{ github.workspace }}:/repo" - --env GITHUB_ACTIONS=true --env GITHUB_REF=$(GITHUB_REF) gittools/gitversion /repo /nofetch > GitVersion.json
+        docker run --rm -v "${{ github.workspace }}:/repo" --env GITHUB_ACTIONS=true --env GITHUB_REF="${{ github.ref }}" gittools/gitversion /repo /nofetch > GitVersion.json
         cat GitVersion.json
 
     - name: semver select
       shell: bash
       run: |
-        SEMVER=${{ inputs.semVer }}
+        SEMVER="${{ inputs.semVer }}"
 
         if [[ -z "$SEMVER" ]]; then
           if [[ "${{ inputs.gv-source }}" == "actions" ]]; then
@@ -133,8 +133,8 @@ runs:
           fi
         else
           #https://gist.github.com/bitmvr/9ed42e1cc2aac799b123de9fdc59b016
-          FULLSEMVER=${{ inputs.semVer }}
-          VERSION="$1"
+          FULLSEMVER="${{ inputs.semVer }}"
+          VERSION="${{ inputs.semVer }}"
           VERSION="${VERSION#[vV]}"
           MAJOR="${VERSION%%\.*}"
           MINOR="${VERSION#*.}"
@@ -152,17 +152,17 @@ runs:
       id: check-release-exists
       with:
         GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
-        ReleaseName: $SEMVER
+        ReleaseName: ${{ env.SEMVER }}
 
     - name: semver output
       shell: bash
       id: set_output
       run: |
-        echo "semVer=$(echo $SEMVER)" >> $GITHUB_OUTPUT
-        echo "fullSemVer=$(echo $FULLSEMVER)" >> $GITHUB_OUTPUT
-        echo "major=$(echo $MAJOR)" >> $GITHUB_OUTPUT
-        echo "minor=$(echo $MINOR)" >> $GITHUB_OUTPUT
-        echo "patch=$(echo $PATCH)" >> $GITHUB_OUTPUT
+        echo "semVer=${SEMVER}" >> $GITHUB_OUTPUT
+        echo "fullSemVer=${FULLSEMVER}" >> $GITHUB_OUTPUT
+        echo "major=${MAJOR}" >> $GITHUB_OUTPUT
+        echo "minor=${MINOR}" >> $GITHUB_OUTPUT
+        echo "patch=${PATCH}" >> $GITHUB_OUTPUT
         echo "release-exists=${{ steps.check-release-exists.outputs.ReleaseExists }}" >> $GITHUB_OUTPUT
 
     - name: create release
@@ -184,7 +184,7 @@ runs:
           && inputs.tag-and-release == 'true'
       run: |
         git config user.name "GitHub Actions Bot"
-        git config user.email "<>"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
 
         TAG=${{ inputs.tag-prefix }}$MAJOR
         echo "TAG=$TAG"
