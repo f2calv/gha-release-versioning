@@ -15,26 +15,16 @@ set -euo pipefail
 
 # Extract the major version number from GV_SPEC (e.g., "5" from "5.x", "6" from "6.x").
 GV_MAJOR="${GV_SPEC%%.*}"
-export GV_MAJOR
 
-# The gittools/gitversion Docker Hub registry does not publish major-version-only
-# tags (e.g. ':5' or ':6'). Query Docker Hub to find the latest simple X.Y.Z tag
-# for this major version so we always use an actual published image.
-GV_IMAGE_TAG=$(curl --silent --fail \
-  "https://hub.docker.com/v2/repositories/gittools/gitversion/tags/?page_size=100&ordering=-last_updated" | \
-  python3 -c "
-import json, sys, os
-major = os.environ['GV_MAJOR']
-data = json.load(sys.stdin)
-tags = [
-    t['name'] for t in data.get('results', [])
-    if t['name'].startswith(major + '.') and '-' not in t['name']
-]
-if not tags:
-    print(f'::error::No gittools/gitversion Docker image tag found for major version {major}', file=sys.stderr)
-    sys.exit(1)
-print(tags[0])
-") || { echo "::error::Failed to query Docker Hub for gittools/gitversion tags"; exit 1; }
+# Map the major version to a concrete Docker image tag.
+# GitVersion 5.x: use the latest known 5.x release (5.12.0); Docker Hub does not
+# publish major-only tags so we use an explicit version tag.
+# GitVersion 6.x: 'latest' always tracks the current 6.x release.
+if [[ "$GV_MAJOR" == "5" ]]; then
+    GV_IMAGE_TAG="5.12.0"
+else
+    GV_IMAGE_TAG="latest"
+fi
 
 echo "Using Docker image: gittools/gitversion:${GV_IMAGE_TAG}"
 
