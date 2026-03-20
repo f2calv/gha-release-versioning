@@ -1,0 +1,87 @@
+name: test
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths-ignore:
+      - .github/dependabot.yml
+      - LICENSE
+      - README.md
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+jobs:
+  test-gitversion:
+    name: test (${{ matrix.gv-source }}, GitVersion ${{ matrix.gv-spec }})
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        gv-source: [actions, dotnet, container]
+        gv-spec: ['5.x', '6.x']
+        include:
+          - gv-spec: '5.x'
+            gv-config: .github/gitversion-v5.yml
+          - gv-spec: '6.x'
+            gv-config: GitVersion.yml
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: ./
+        id: action
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          gv-source: ${{ matrix.gv-source }}
+          gv-spec: ${{ matrix.gv-spec }}
+          gv-config: ${{ matrix.gv-config }}
+          tag-and-release: false
+
+      - name: assert outputs
+        shell: bash
+        run: |
+          echo "version=${{ steps.action.outputs.version }}"
+          echo "fullSemVer=${{ steps.action.outputs.fullSemVer }}"
+          echo "major=${{ steps.action.outputs.major }}"
+          echo "minor=${{ steps.action.outputs.minor }}"
+          echo "patch=${{ steps.action.outputs.patch }}"
+          [[ -n "${{ steps.action.outputs.version }}" ]]    || { echo "::error::version output is empty";    exit 1; }
+          [[ -n "${{ steps.action.outputs.fullSemVer }}" ]] || { echo "::error::fullSemVer output is empty"; exit 1; }
+          [[ -n "${{ steps.action.outputs.major }}" ]]      || { echo "::error::major output is empty";      exit 1; }
+          [[ -n "${{ steps.action.outputs.minor }}" ]]      || { echo "::error::minor output is empty";      exit 1; }
+          [[ -n "${{ steps.action.outputs.patch }}" ]]      || { echo "::error::patch output is empty";      exit 1; }
+
+  test-manual-semver:
+    name: test (manual semVer override)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: ./
+        id: action
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          semVer: '2.3.4'
+          tag-and-release: false
+
+      - name: assert outputs
+        shell: bash
+        run: |
+          echo "version=${{ steps.action.outputs.version }}"
+          echo "major=${{ steps.action.outputs.major }}"
+          echo "minor=${{ steps.action.outputs.minor }}"
+          echo "patch=${{ steps.action.outputs.patch }}"
+          [[ "${{ steps.action.outputs.version }}" == "2.3.4" ]] || { echo "::error::version should be 2.3.4, got '${{ steps.action.outputs.version }}'"; exit 1; }
+          [[ "${{ steps.action.outputs.major }}"   == "2" ]]     || { echo "::error::major should be 2, got '${{ steps.action.outputs.major }}'";         exit 1; }
+          [[ "${{ steps.action.outputs.minor }}"   == "3" ]]     || { echo "::error::minor should be 3, got '${{ steps.action.outputs.minor }}'";         exit 1; }
+          [[ "${{ steps.action.outputs.patch }}"   == "4" ]]     || { echo "::error::patch should be 4, got '${{ steps.action.outputs.patch }}'";         exit 1; }
+

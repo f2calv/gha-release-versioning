@@ -15,16 +15,31 @@ on:
 
 jobs:
   release:
-    uses: f2calv/gha-workflows/.github/workflows/gha-release-versioning.yml@v1
+    runs-on: ubuntu-latest
     permissions:
       contents: write
-  
+    outputs:
+      version: ${{ steps.release.outputs.version }}
+      fullSemVer: ${{ steps.release.outputs.fullSemVer }}
+      major: ${{ steps.release.outputs.major }}
+      minor: ${{ steps.release.outputs.minor }}
+      patch: ${{ steps.release.outputs.patch }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: ./
+        id: release
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   test:
     needs: release
     runs-on: ubuntu-latest
     steps:
       - run: |
-          echo "semVer=${{ needs.release.outputs.semVer }}"
+          echo "version=${{ needs.release.outputs.version }}"
           echo "fullSemVer=${{ needs.release.outputs.fullSemVer }}"
           echo "major=${{ needs.release.outputs.major }}"
           echo "minor=${{ needs.release.outputs.minor }}"

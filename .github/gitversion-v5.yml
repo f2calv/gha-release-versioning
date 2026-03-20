@@ -1,11 +1,11 @@
-mode: ManualDeployment
+mode: MainLine
 branches:
   main:
     regex: ^main$
-    label: ''
+    tag: ''
   feature:
     regex: ^features?[/-]
-    label: useBranchName
+    tag: useBranchName
 ignore:
   sha: []
 merge-message-formats: {}
