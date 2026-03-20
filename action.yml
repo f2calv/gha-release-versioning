@@ -37,7 +37,7 @@ inputs:
   gv-spec:
     description: Choose a version specification for GitVersion.
     type: string
-    default: 5.x
+    default: 6.x
 
 outputs:
   version:
@@ -78,24 +78,23 @@ runs:
         fi
 
     - name: gitversion actions (1 of 2)
-      uses: gittools/actions/gitversion/setup@v2
+      uses: gittools/actions/gitversion/setup@v4.3.3
       if: inputs.semVer == '' && inputs.gv-source == 'actions'
       with:
         versionSpec: ${{ inputs.gv-spec }}
 
     - name: gitversion actions (2 of 2)
-      uses: gittools/actions/gitversion/execute@v2
+      uses: gittools/actions/gitversion/execute@v4.3.3
       if: inputs.semVer == '' && inputs.gv-source == 'actions'
       id: gitversion_actions
       with:
-        useConfigFile: true
-        additionalArguments: /nofetch
+        configFilePath: ${{ inputs.gv-config }}
 
     - name: gitversion dotnet (1 of 2)
       uses: actions/setup-dotnet@v5
       if: inputs.semVer == '' && inputs.gv-source == 'dotnet'
       with:
-        dotnet-version: 8.0.x
+        dotnet-version: 10.0.0
 
     - name: gitversion dotnet (2 of 2)
       shell: bash
@@ -166,7 +165,7 @@ runs:
         echo "release-exists=${{ steps.check-release-exists.outputs.ReleaseExists }}" >> $GITHUB_OUTPUT
 
     - name: create release
-      uses: softprops/action-gh-release@v2
+      uses: softprops/action-gh-release@v2.6.1
       if: |
         steps.check-release-exists.outputs.ReleaseExists == 'false'
           && (github.ref == format('refs/heads/{0}', github.event.repository.default_branch))

@@ -39,7 +39,7 @@ jobs:
 | `tag-and-release` | No | `true` | When `true`, creates a Git tag and a GitHub release. |
 | `gv-config` | No | `GitVersion.yml` | Path to the GitVersion configuration file. |
 | `gv-source` | No | `actions` | GitVersion installation source: `actions`, `dotnet`, or `container`. |
-| `gv-spec` | No | `5.x` | GitVersion version specification. |
+| `gv-spec` | No | `6.x` | GitVersion version specification. |
 
 ## Outputs
 
@@ -55,7 +55,24 @@ jobs:
 
 ## GitVersion configuration
 
-A `GitVersion.yml` file is required in the repository root when `gv-source` is used. Example configuration for a library that uses mainline development:
+A `GitVersion.yml` file is required in the repository root when `gv-source` is used. The configuration schema changed between GitVersion v5 and v6 — the main difference is that branch pre-release labels are configured with `label:` in v6 (previously `tag:` in v5).
+
+### GitVersion v6 (default, recommended)
+
+```yaml
+mode: MainLine
+branches:
+  main:
+    regex: ^main$
+    label: ''
+  feature:
+    regex: ^features?[/-]
+    label: useBranchName
+```
+
+### GitVersion v5 (legacy)
+
+To use GitVersion v5, pass `gv-spec: '5.x'` and supply a v5-compatible config file via `gv-config`:
 
 ```yaml
 mode: MainLine
@@ -67,6 +84,8 @@ branches:
     regex: ^features?[/-]
     tag: useBranchName
 ```
+
+> **Note:** `tag:` in v5 branch config is a pre-release label setting and is not related to Git tags. In v6 this field was renamed to `label:` to avoid confusion.
 
 ## License
 
