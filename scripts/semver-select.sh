@@ -14,6 +14,10 @@ set -euo pipefail
 # All resolved values are exported to $GITHUB_ENV so that subsequent steps can
 # reference them as ${{ env.SEMVER }}, ${{ env.MAJOR }}, etc.
 
+# Validate required environment variables
+: "${GV_SOURCE:?GV_SOURCE is required}"
+: "${GITHUB_ENV:?GITHUB_ENV is required}"
+
 SEMVER="${SEMVER_INPUT:-}"
 
 if [[ -z "$SEMVER" ]]; then

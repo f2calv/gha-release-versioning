@@ -13,6 +13,12 @@ set -euo pipefail
 # GV_SPEC is resolved by the gitversion-config-check step (written to
 # $GITHUB_ENV) and is automatically available in this step's environment.
 
+# Validate required environment variables
+: "${GV_SPEC:?GV_SPEC is required}"
+: "${GV_CONFIG:?GV_CONFIG is required}"
+: "${GITHUB_WORKSPACE:?GITHUB_WORKSPACE is required}"
+: "${GITHUB_REF:?GITHUB_REF is required}"
+
 # Extract the major version number from GV_SPEC (e.g., "5" from "5.x", "6" from "6.x").
 GV_MAJOR="${GV_SPEC%%.*}"
 

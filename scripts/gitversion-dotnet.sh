@@ -8,6 +8,11 @@ set -euo pipefail
 # full history is already available because actions/checkout ran with
 # fetch-depth: 0.
 
+# Validate required environment variables
+: "${GV_SPEC:?GV_SPEC is required}"
+: "${GV_CONFIG:?GV_CONFIG is required}"
+: "${GITHUB_WORKSPACE:?GITHUB_WORKSPACE is required}"
+
 GV_MAJOR="${GV_SPEC%%.*}"
 
 # Install the correct major version of GitVersion.Tool to match GV_SPEC.

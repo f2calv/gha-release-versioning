@@ -10,6 +10,10 @@ set -euo pipefail
 # need to supply the correct config file — they do not have to keep gv-spec in
 # sync manually.
 
+# Validate required environment variables
+: "${GV_CONFIG:?GV_CONFIG is required}"
+: "${GITHUB_ENV:?GITHUB_ENV is required}"
+
 GV_SPEC="${GV_SPEC:-5.x}"
 FILE="${GV_CONFIG:-}"
 

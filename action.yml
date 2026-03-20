@@ -38,6 +38,10 @@ inputs:
     description: Choose a version specification for GitVersion.
     type: string
     default: 5.x
+  dotnet-version:
+    description: .NET SDK version to install when gv-source is 'dotnet'.
+    type: string
+    default: 10.0.x
 
 outputs:
   version:
@@ -112,7 +116,7 @@ runs:
       uses: actions/setup-dotnet@v5
       if: inputs.semVer == '' && inputs.gv-source == 'dotnet'
       with:
-        dotnet-version: 10.0.x
+        dotnet-version: ${{ inputs.dotnet-version }}
 
     # Install the latest GitVersion .NET tool and run it; writes GitVersion.json.
     - name: gitversion dotnet (2 of 2)

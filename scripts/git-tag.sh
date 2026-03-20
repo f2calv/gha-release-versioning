@@ -10,6 +10,11 @@ set -euo pipefail
 # MAJOR and MINOR are loaded from $GITHUB_ENV by the runner between steps.
 # TAG_PREFIX is injected via the step's env: block from the tag-prefix input.
 
+# Validate required environment variables
+: "${TAG_PREFIX:?TAG_PREFIX is required}"
+: "${MAJOR:?MAJOR is required}"
+: "${MINOR:?MINOR is required}"
+
 git config user.name "GitHub Actions Bot"
 git config user.email "github-actions[bot]@users.noreply.github.com"
 

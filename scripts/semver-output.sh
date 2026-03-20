@@ -8,6 +8,15 @@ set -euo pipefail
 # the runner between steps.  RELEASE_EXISTS is injected via the step's env:
 # block from the check-release-exists step output.
 
+# Validate required environment variables
+: "${SEMVER:?SEMVER is required}"
+: "${FULLSEMVER:?FULLSEMVER is required}"
+: "${MAJOR:?MAJOR is required}"
+: "${MINOR:?MINOR is required}"
+: "${PATCH:?PATCH is required}"
+: "${RELEASE_EXISTS:?RELEASE_EXISTS is required}"
+: "${GITHUB_OUTPUT:?GITHUB_OUTPUT is required}"
+
 echo "semVer=${SEMVER}"                 >> "$GITHUB_OUTPUT"
 echo "fullSemVer=${FULLSEMVER}"         >> "$GITHUB_OUTPUT"
 echo "major=${MAJOR}"                   >> "$GITHUB_OUTPUT"
