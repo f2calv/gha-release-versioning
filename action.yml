@@ -118,12 +118,16 @@ runs:
     - name: gitversion dotnet (2 of 2)
       shell: bash
       if: inputs.semVer == '' && inputs.gv-source == 'dotnet'
+      env:
+        GV_CONFIG: ${{ inputs.gv-config }}
       run: bash "${{ github.action_path }}/scripts/gitversion-dotnet.sh"
 
     # Run GitVersion inside the official Docker container; writes GitVersion.json.
     - name: gitversion container (1 of 1)
       shell: bash
       if: inputs.semVer == '' && inputs.gv-source == 'container'
+      env:
+        GV_CONFIG: ${{ inputs.gv-config }}
       run: bash "${{ github.action_path }}/scripts/gitversion-container.sh"
 
     # Select the final SemVer values from whichever source ran above (or parse

@@ -31,10 +31,12 @@ echo "Using Docker image: gittools/gitversion:${GV_IMAGE_TAG}"
 # Capture stdout to a variable first so that any error output written to stdout
 # does not corrupt GitVersion.json, and so that set -e can catch a non-zero exit
 # before the file is written.
+# The workspace is mounted at /repo inside the container, so the config path
+# must use the /repo prefix.
 OUTPUT=$(docker run --rm \
   -v "$GITHUB_WORKSPACE:/repo" \
   -e GITHUB_ACTIONS=true \
   -e GITHUB_REF="$GITHUB_REF" \
-  "gittools/gitversion:${GV_IMAGE_TAG}" /repo /nofetch)
+  "gittools/gitversion:${GV_IMAGE_TAG}" /repo /nofetch /config "/repo/${GV_CONFIG}")
 echo "$OUTPUT" > GitVersion.json
 cat GitVersion.json

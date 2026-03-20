@@ -18,6 +18,8 @@ dotnet tool update -g GitVersion.Tool --version "${GV_MAJOR}.*"
 # Capture stdout to a variable first so that any error output written to stdout
 # does not corrupt GitVersion.json, and so that set -e can catch a non-zero exit
 # before the file is written.
-OUTPUT=$("$HOME/.dotnet/tools/dotnet-gitversion" "$GITHUB_WORKSPACE" /nofetch)
+# Use an absolute config path so GitVersion finds the correct file regardless of
+# the current working directory.
+OUTPUT=$("$HOME/.dotnet/tools/dotnet-gitversion" "$GITHUB_WORKSPACE" /nofetch /config "${GITHUB_WORKSPACE}/${GV_CONFIG}")
 echo "$OUTPUT" > GitVersion.json
 cat GitVersion.json
