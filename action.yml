@@ -37,7 +37,7 @@ inputs:
   gv-spec:
     description: Choose a version specification for GitVersion.
     type: string
-    default: 5.x
+    default: 6.x
   dotnet-version:
     description: .NET SDK version to install when gv-source is 'dotnet'.
     type: string

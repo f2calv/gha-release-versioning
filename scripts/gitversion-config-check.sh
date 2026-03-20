@@ -14,7 +14,7 @@ set -euo pipefail
 : "${GV_CONFIG:?GV_CONFIG is required}"
 : "${GITHUB_ENV:?GITHUB_ENV is required}"
 
-GV_SPEC="${GV_SPEC:-5.x}"
+GV_SPEC="${GV_SPEC:-6.x}"
 FILE="${GV_CONFIG:-}"
 
 if [[ -n "$FILE" ]]; then
