@@ -34,10 +34,6 @@ inputs:
     description: Choose an installation source for GitVersion, options include container, dotnet & actions.
     type: string
     default: actions
-  gv-spec:
-    description: Choose a version specification for GitVersion.
-    type: string
-    default: 5.x
   dotnet-version:
     description: .NET SDK version to install when gv-source is 'dotnet'.
     type: string
@@ -76,7 +72,6 @@ runs:
       shell: bash
       if: inputs.semVer == ''
       env:
-        GV_SPEC: ${{ inputs.gv-spec }}
         GV_CONFIG: ${{ inputs.gv-config }}
       run: bash "${{ github.action_path }}/scripts/gitversion-config-check.sh"
 

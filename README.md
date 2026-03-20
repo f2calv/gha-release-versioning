@@ -40,7 +40,6 @@ jobs:
 | `tag-and-release` | No | `true` | When `true`, creates a Git tag and a GitHub release. |
 | `gv-config` | No | `GitVersion.yml` | Path to the GitVersion configuration file. |
 | `gv-source` | No | `actions` | GitVersion installation source: `actions`, `dotnet`, or `container`. |
-| `gv-spec` | No | `5.x` | GitVersion version specification. Auto-detected from `gv-config` if not set explicitly. |
 | `dotnet-version` | No | `10.0.x` | .NET SDK version to install when `gv-source` is `dotnet`. |
 
 ## Outputs
@@ -59,9 +58,9 @@ jobs:
 
 A `GitVersion.yml` file is required in the repository root when `gv-source` is used. The configuration schema changed between GitVersion v5 and v6 — the main difference is that branch pre-release labels are configured with `label:` in v6 (previously `tag:` in v5).
 
-The action **auto-detects** the GitVersion version from the config file: if the config contains `label:` keys under `branches`, `6.x` is used; if it contains `tag:` keys, `5.x` is used. The auto-detected value overrides the `gv-spec` input, so in most cases you can omit `gv-spec` entirely and just supply the right config file.
+The action **auto-detects** the GitVersion version from the config file: if the config contains `label:` keys under `branches`, `6.x` is used; if it contains `tag:` keys, `5.x` is used. There is no need to specify the version manually.
 
-### GitVersion v5 (default)
+### GitVersion v5
 
 ```yaml
 mode: MainLine
@@ -74,12 +73,10 @@ branches:
     tag: useBranchName
 ```
 
-### GitVersion v6
-
-To use GitVersion v6, supply a v6-compatible config file (the action will auto-detect `6.x` from the `label:` keys):
+### GitVersion v6 (default)
 
 ```yaml
-mode: ManualDeployment
+mode: ContinuousDeployment
 branches:
   main:
     regex: ^main$
@@ -89,7 +86,7 @@ branches:
     label: useBranchName
 ```
 
-> **Note:** `tag:` in v5 branch config is a pre-release label setting and is not related to Git tags. In v6 this field was renamed to `label:` to avoid confusion. The `mode` value also changed: `MainLine` in v5 became `ManualDeployment` in v6 (the `Mainline` deployment strategy was removed; `ManualDeployment` is the closest equivalent where releases are controlled by explicit Git tags).
+> **Note:** `tag:` in v5 branch config is a pre-release label setting and is not related to Git tags. In v6 this field was renamed to `label:` to avoid confusion. The `mode` value also changed: `MainLine` in v5 became `ContinuousDeployment` in v6 (both produce clean versions on the default branch without requiring a pre-existing tag).
 
 ## `gv-source` options
 
