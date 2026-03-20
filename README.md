@@ -38,7 +38,7 @@ jobs:
 | `move-major-tag` | No | `true` | When `true`, moves rolling major (e.g. `v1`) and minor (e.g. `v1.2`) tags to the new release commit. |
 | `tag-and-release` | No | `true` | When `true`, creates a Git tag and a GitHub release. |
 | `gv-config` | No | `GitVersion.yml` | Path to the GitVersion configuration file. |
-| `gv-source` | No | `actions` | GitVersion installation source: `actions`, `dotnet`, or `container`. |
+| `gv-source` | No | `actions` | GitVersion installation source: `actions`, `dotnet`, or `container`. Note: `actions` only supports GitVersion 6.x (see below). |
 | `gv-spec` | No | `5.x` | GitVersion version specification. Auto-detected from `gv-config` if not set explicitly. |
 
 ## Outputs
@@ -77,7 +77,7 @@ branches:
 To use GitVersion v6, supply a v6-compatible config file (the action will auto-detect `6.x` from the `label:` keys):
 
 ```yaml
-mode: MainLine
+mode: mainline
 branches:
   main:
     regex: ^main$
@@ -87,7 +87,11 @@ branches:
     label: useBranchName
 ```
 
-> **Note:** `tag:` in v5 branch config is a pre-release label setting and is not related to Git tags. In v6 this field was renamed to `label:` to avoid confusion.
+> **Note:** `tag:` in v5 branch config is a pre-release label setting and is not related to Git tags. In v6 this field was renamed to `label:` to avoid confusion. The `mode` value also changed casing (`MainLine` → `mainline`).
+
+### `gv-source: actions` and GitVersion 5.x
+
+`gittools/actions@v4` (used by the `actions` source) requires GitVersion **6.1.0 or later** and does not support GitVersion 5.x. When using GitVersion 5.x, set `gv-source: dotnet` or `gv-source: container`.
 
 ## License
 

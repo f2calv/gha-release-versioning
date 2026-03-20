@@ -1,4 +1,4 @@
-mode: MainLine
+mode: mainline
 branches:
   main:
     regex: ^main$

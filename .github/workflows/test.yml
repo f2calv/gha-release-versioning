@@ -29,6 +29,11 @@ jobs:
             gv-config: .github/gitversion-v5.yml
           - gv-spec: '6.x'
             gv-config: GitVersion.yml
+        exclude:
+          # gittools/actions@v4 requires GitVersion >= 6.1.0 and does not support 5.x.
+          # Use gv-source: dotnet or container for 5.x testing.
+          - gv-source: actions
+            gv-spec: '5.x'
     steps:
       - uses: actions/checkout@v6
         with:
