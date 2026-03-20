@@ -14,7 +14,7 @@ on:
 
 jobs:
   test-gitversion:
-    name: test (${{ matrix.gv-source }}, GitVersion ${{ matrix.gv-version }})
+    name: test (${{ matrix.gv-source }}, ${{ matrix.gv-config }})
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -22,12 +22,7 @@ jobs:
       fail-fast: false
       matrix:
         gv-source: [actions, dotnet, container]
-        gv-version: ['v5', 'v6']
-        include:
-          - gv-version: v5
-            gv-config: .github/gitversion-v5.yml
-          - gv-version: v6
-            gv-config: GitVersion.yml
+        gv-config: ['.github/gitversion-v5.yml', 'GitVersion.yml']
     steps:
       - uses: actions/checkout@v6
         with:
