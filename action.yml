@@ -76,18 +76,33 @@ runs:
         GV_CONFIG: ${{ inputs.gv-config }}
       run: bash "${{ github.action_path }}/scripts/gitversion-config-check.sh"
 
-    # Install the requested GitVersion version via the gittools GitHub Action.
-    - name: gitversion actions (1 of 2)
-      uses: gittools/actions/gitversion/setup@v4
-      if: inputs.semVer == '' && inputs.gv-source == 'actions'
+    # Install GitVersion 5.x via gittools/actions@v3 (supports GV_SPEC 5.x only).
+    - name: gitversion actions v5 (1 of 2)
+      uses: gittools/actions/gitversion/setup@v3
+      if: inputs.semVer == '' && inputs.gv-source == 'actions' && env.GV_SPEC == '5.x'
       with:
         versionSpec: ${{ env.GV_SPEC }}
 
-    # Execute GitVersion and expose its outputs as step outputs (id: gitversion_actions).
-    - name: gitversion actions (2 of 2)
+    # Execute GitVersion 5.x and expose its outputs as step outputs (id: gitversion_actions_v5).
+    - name: gitversion actions v5 (2 of 2)
+      uses: gittools/actions/gitversion/execute@v3
+      if: inputs.semVer == '' && inputs.gv-source == 'actions' && env.GV_SPEC == '5.x'
+      id: gitversion_actions_v5
+      with:
+        configFilePath: ${{ inputs.gv-config }}
+
+    # Install GitVersion 6.x via gittools/actions@v4 (requires GV_SPEC 6.x; v4 does not support 5.x).
+    - name: gitversion actions v6 (1 of 2)
+      uses: gittools/actions/gitversion/setup@v4
+      if: inputs.semVer == '' && inputs.gv-source == 'actions' && env.GV_SPEC == '6.x'
+      with:
+        versionSpec: ${{ env.GV_SPEC }}
+
+    # Execute GitVersion 6.x and expose its outputs as step outputs (id: gitversion_actions_v6).
+    - name: gitversion actions v6 (2 of 2)
       uses: gittools/actions/gitversion/execute@v4
-      if: inputs.semVer == '' && inputs.gv-source == 'actions'
-      id: gitversion_actions
+      if: inputs.semVer == '' && inputs.gv-source == 'actions' && env.GV_SPEC == '6.x'
+      id: gitversion_actions_v6
       with:
         configFilePath: ${{ inputs.gv-config }}
 
@@ -117,11 +132,11 @@ runs:
       env:
         SEMVER_INPUT: ${{ inputs.semVer }}
         GV_SOURCE: ${{ inputs.gv-source }}
-        GV_ACTIONS_SEMVER: ${{ steps.gitversion_actions.outputs.semVer }}
-        GV_ACTIONS_FULLSEMVER: ${{ steps.gitversion_actions.outputs.fullSemVer }}
-        GV_ACTIONS_MAJOR: ${{ steps.gitversion_actions.outputs.major }}
-        GV_ACTIONS_MINOR: ${{ steps.gitversion_actions.outputs.minor }}
-        GV_ACTIONS_PATCH: ${{ steps.gitversion_actions.outputs.patch }}
+        GV_ACTIONS_SEMVER: ${{ steps.gitversion_actions_v5.outputs.semVer || steps.gitversion_actions_v6.outputs.semVer }}
+        GV_ACTIONS_FULLSEMVER: ${{ steps.gitversion_actions_v5.outputs.fullSemVer || steps.gitversion_actions_v6.outputs.fullSemVer }}
+        GV_ACTIONS_MAJOR: ${{ steps.gitversion_actions_v5.outputs.major || steps.gitversion_actions_v6.outputs.major }}
+        GV_ACTIONS_MINOR: ${{ steps.gitversion_actions_v5.outputs.minor || steps.gitversion_actions_v6.outputs.minor }}
+        GV_ACTIONS_PATCH: ${{ steps.gitversion_actions_v5.outputs.patch || steps.gitversion_actions_v6.outputs.patch }}
       run: bash "${{ github.action_path }}/scripts/semver-select.sh"
 
     # Check whether a GitHub Release already exists for this version.

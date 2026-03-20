@@ -6,6 +6,11 @@ updates:
     schedule:
       interval: weekly
       time: "04:00"
+    ignore:
+      # gittools/actions@v3 is intentionally pinned for GitVersion 5.x compatibility.
+      # Dependabot must not auto-update it to v4 (which requires GitVersion >= 6.1.0).
+      - dependency-name: "gittools/actions"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: devcontainers
     directory: /
