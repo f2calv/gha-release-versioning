@@ -171,7 +171,7 @@ runs:
           && (github.ref == format('refs/heads/{0}', github.event.repository.default_branch))
           && inputs.tag-and-release == 'true'
       with:
-        tag_name: ${{ inputs.tag-prefix }}${{ env.FULLSEMVER }}
+        tag_name: ${{ inputs.tag-prefix }}${{ env.SEMVER }}
         name: ${{ env.FULLSEMVER }}
 
     # Create or move the rolling major and major.minor version tags to this commit.
