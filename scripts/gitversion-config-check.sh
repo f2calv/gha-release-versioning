@@ -1,20 +1,18 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Resolve the effective GitVersion version specification.
+# Resolve the effective GitVersion version specification by inspecting the
+# config file.
 #
-# The caller passes the user-supplied spec via GV_SPEC and the config file
-# path via GV_CONFIG.  We inspect the config file to determine whether it uses
-# the GitVersion v5 "tag:" syntax or the v6 "label:" syntax.  If the detected
-# version differs from the input spec the detected value wins, so callers only
-# need to supply the correct config file — they do not have to keep gv-spec in
-# sync manually.
+# The config file path is passed via GV_CONFIG.  We detect whether it uses the
+# GitVersion v5 "tag:" syntax or the v6 "label:" syntax and set GV_SPEC
+# accordingly.  If neither keyword is found, we default to 6.x.
 
 # Validate required environment variables
 : "${GV_CONFIG:?GV_CONFIG is required}"
 : "${GITHUB_ENV:?GITHUB_ENV is required}"
 
-GV_SPEC="${GV_SPEC:-6.x}"
+GV_SPEC="6.x"
 FILE="${GV_CONFIG:-}"
 
 if [[ -n "$FILE" ]]; then
@@ -25,20 +23,13 @@ if [[ -n "$FILE" ]]; then
     #   label:  →  v6.x
     #   tag:    →  v5.x
     if grep -qE '^\s*label:' "$FILE"; then
-      DETECTED="6.x"
+      GV_SPEC="6.x"
+      echo "Detected GitVersion 6.x config (found 'label:' in $FILE)"
     elif grep -qE '^\s*tag:' "$FILE"; then
-      DETECTED="5.x"
-    fi
-
-    if [[ -n "${DETECTED:-}" ]]; then
-      if [[ "$DETECTED" != "$GV_SPEC" ]]; then
-        echo "Auto-detected GitVersion spec '$DETECTED' from $FILE (overrides input '$GV_SPEC')"
-        GV_SPEC="$DETECTED"
-      else
-        echo "Auto-detected GitVersion spec '$DETECTED' from $FILE (matches input '$GV_SPEC')"
-      fi
+      GV_SPEC="5.x"
+      echo "Detected GitVersion 5.x config (found 'tag:' in $FILE)"
     else
-      echo "No GitVersion spec detected in $FILE; using input '$GV_SPEC'"
+      echo "No version-specific keywords detected in $FILE; defaulting to '$GV_SPEC'"
     fi
   else
     echo "::error file=$FILE::Repository versioning is managed by GitVersion, '$FILE' is therefore required!"
