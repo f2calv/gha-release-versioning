@@ -89,6 +89,7 @@ runs:
       if: inputs.semVer == '' && inputs.gv-source == 'actions' && env.GV_SPEC == '5.x'
       id: gitversion_actions_v5
       with:
+        useConfigFile: true
         configFilePath: ${{ inputs.gv-config }}
 
     # Install GitVersion 6.x via gittools/actions@v4 (requires GV_SPEC 6.x; v4 does not support 5.x).

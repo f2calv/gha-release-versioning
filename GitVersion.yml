@@ -1,4 +1,4 @@
-mode: mainline
+mode: ManualDeployment
 branches:
   main:
     regex: ^main$

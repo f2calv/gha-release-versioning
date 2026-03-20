@@ -8,7 +8,12 @@ set -euo pipefail
 # full history is already available because actions/checkout ran with
 # fetch-depth: 0.
 
-dotnet tool update -g GitVersion.Tool
+GV_MAJOR="${GV_SPEC%%.*}"
+
+# Install the correct major version of GitVersion.Tool to match GV_SPEC.
+# Without a version constraint, 'dotnet tool update' always installs the latest
+# release, which cannot parse config files from a different major version.
+dotnet tool update -g GitVersion.Tool --version "${GV_MAJOR}.*"
 
 # Capture stdout to a variable first so that any error output written to stdout
 # does not corrupt GitVersion.json, and so that set -e can catch a non-zero exit

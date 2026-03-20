@@ -77,7 +77,7 @@ branches:
 To use GitVersion v6, supply a v6-compatible config file (the action will auto-detect `6.x` from the `label:` keys):
 
 ```yaml
-mode: mainline
+mode: ManualDeployment
 branches:
   main:
     regex: ^main$
@@ -87,7 +87,7 @@ branches:
     label: useBranchName
 ```
 
-> **Note:** `tag:` in v5 branch config is a pre-release label setting and is not related to Git tags. In v6 this field was renamed to `label:` to avoid confusion. The `mode` value also changed casing (`MainLine` → `mainline`).
+> **Note:** `tag:` in v5 branch config is a pre-release label setting and is not related to Git tags. In v6 this field was renamed to `label:` to avoid confusion. The `mode` value also changed: `MainLine` in v5 became `ManualDeployment` in v6 (the `Mainline` deployment strategy was removed; `ManualDeployment` is the closest equivalent where releases are controlled by explicit Git tags).
 
 ### `gv-source: actions` and GitVersion 5.x
 
