@@ -37,7 +37,7 @@ inputs:
   gv-spec:
     description: Choose a version specification for GitVersion.
     type: string
-    default: 6.x
+    default: 5.x
 
 outputs:
   version:
@@ -68,23 +68,46 @@ runs:
 
     - name: gitversion config check
       shell: bash
-      if: inputs.semVer == '' && inputs.gv-config != ''
+      if: inputs.semVer == ''
       run: |
-        FILE=${{ inputs.gv-config }}
-        if [[ -f "$FILE" ]]; then
-          echo "$FILE exists"
-        else
-          echo "::error file=${{ inputs.gv-config }}::Repository versioning is managed by GitVersion, '$FILE' is therefore required!"
+        GV_SPEC="${{ inputs.gv-spec }}"
+        FILE="${{ inputs.gv-config }}"
+
+        if [[ -n "$FILE" ]]; then
+          if [[ -f "$FILE" ]]; then
+            echo "$FILE exists"
+
+            if grep -qE '^\s*label:' "$FILE"; then
+              DETECTED="6.x"
+            elif grep -qE '^\s*tag:' "$FILE"; then
+              DETECTED="5.x"
+            fi
+
+            if [[ -n "$DETECTED" ]]; then
+              if [[ "$DETECTED" != "$GV_SPEC" ]]; then
+                echo "Auto-detected GitVersion spec '$DETECTED' from $FILE (overrides input '$GV_SPEC')"
+                GV_SPEC="$DETECTED"
+              else
+                echo "Auto-detected GitVersion spec '$DETECTED' from $FILE (matches input '$GV_SPEC')"
+              fi
+            else
+              echo "No GitVersion spec detected in $FILE; using input '$GV_SPEC'"
+            fi
+          else
+            echo "::error file=$FILE::Repository versioning is managed by GitVersion, '$FILE' is therefore required!"
+          fi
         fi
 
+        echo "GV_SPEC=$GV_SPEC" >> $GITHUB_ENV
+
     - name: gitversion actions (1 of 2)
-      uses: gittools/actions/gitversion/setup@v4.3.3
+      uses: gittools/actions/gitversion/setup@v4
       if: inputs.semVer == '' && inputs.gv-source == 'actions'
       with:
-        versionSpec: ${{ inputs.gv-spec }}
+        versionSpec: ${{ env.GV_SPEC }}
 
     - name: gitversion actions (2 of 2)
-      uses: gittools/actions/gitversion/execute@v4.3.3
+      uses: gittools/actions/gitversion/execute@v4
       if: inputs.semVer == '' && inputs.gv-source == 'actions'
       id: gitversion_actions
       with:
@@ -108,7 +131,7 @@ runs:
       shell: bash
       if: inputs.semVer == '' && inputs.gv-source == 'container'
       run: |
-        docker run --rm -v "${{ github.workspace }}:/repo" --env GITHUB_ACTIONS=true --env GITHUB_REF="${{ github.ref }}" gittools/gitversion /repo /nofetch > GitVersion.json
+        docker run --rm -v "${{ github.workspace }}:/repo" -e GITHUB_ACTIONS=true -e GITHUB_REF="${{ github.ref }}" gittools/gitversion /repo /nofetch > GitVersion.json
         cat GitVersion.json
 
     - name: semver select
@@ -165,7 +188,7 @@ runs:
         echo "release-exists=${{ steps.check-release-exists.outputs.ReleaseExists }}" >> $GITHUB_OUTPUT
 
     - name: create release
-      uses: softprops/action-gh-release@v2.6.1
+      uses: softprops/action-gh-release@v2
       if: |
         steps.check-release-exists.outputs.ReleaseExists == 'false'
           && (github.ref == format('refs/heads/{0}', github.event.repository.default_branch))

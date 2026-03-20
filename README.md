@@ -17,7 +17,7 @@ jobs:
       minor: ${{ steps.release.outputs.minor }}
       patch: ${{ steps.release.outputs.patch }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0   # required for GitVersion to read full history
       - uses: f2calv/gha-release-versioning@v1
@@ -39,7 +39,7 @@ jobs:
 | `tag-and-release` | No | `true` | When `true`, creates a Git tag and a GitHub release. |
 | `gv-config` | No | `GitVersion.yml` | Path to the GitVersion configuration file. |
 | `gv-source` | No | `actions` | GitVersion installation source: `actions`, `dotnet`, or `container`. |
-| `gv-spec` | No | `6.x` | GitVersion version specification. |
+| `gv-spec` | No | `5.x` | GitVersion version specification. Auto-detected from `gv-config` if not set explicitly. |
 
 ## Outputs
 
@@ -57,22 +57,9 @@ jobs:
 
 A `GitVersion.yml` file is required in the repository root when `gv-source` is used. The configuration schema changed between GitVersion v5 and v6 — the main difference is that branch pre-release labels are configured with `label:` in v6 (previously `tag:` in v5).
 
-### GitVersion v6 (default, recommended)
+The action **auto-detects** the GitVersion version from the config file: if the config contains `label:` keys under `branches`, `6.x` is used; if it contains `tag:` keys, `5.x` is used. The auto-detected value overrides the `gv-spec` input, so in most cases you can omit `gv-spec` entirely and just supply the right config file.
 
-```yaml
-mode: MainLine
-branches:
-  main:
-    regex: ^main$
-    label: ''
-  feature:
-    regex: ^features?[/-]
-    label: useBranchName
-```
-
-### GitVersion v5 (legacy)
-
-To use GitVersion v5, pass `gv-spec: '5.x'` and supply a v5-compatible config file via `gv-config`:
+### GitVersion v5 (default)
 
 ```yaml
 mode: MainLine
@@ -83,6 +70,21 @@ branches:
   feature:
     regex: ^features?[/-]
     tag: useBranchName
+```
+
+### GitVersion v6
+
+To use GitVersion v6, supply a v6-compatible config file (the action will auto-detect `6.x` from the `label:` keys):
+
+```yaml
+mode: MainLine
+branches:
+  main:
+    regex: ^main$
+    label: ''
+  feature:
+    regex: ^features?[/-]
+    label: useBranchName
 ```
 
 > **Note:** `tag:` in v5 branch config is a pre-release label setting and is not related to Git tags. In v6 this field was renamed to `label:` to avoid confusion.
