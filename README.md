@@ -32,7 +32,7 @@ jobs:
 ## Inputs
 
 | Input | Required | Default | Description |
-|-------|----------|---------|-------------|
+| ----- | -------- | ------- | ----------- |
 | `GITHUB_TOKEN` | Yes | — | GitHub token for API access and creating releases. |
 | `semVer` | No | `''` | Pass in an externally generated semantic version. When empty, GitVersion is used. |
 | `tag-prefix` | No | `v` | Prefix applied to the version tag, e.g. `v1.0.1`. |
@@ -45,7 +45,7 @@ jobs:
 ## Outputs
 
 | Output | Description |
-|--------|-------------|
+| ------ | ----------- |
 | `version` | The calculated semantic version, e.g. `1.2.301`. |
 | `semVer` | **Deprecated** — use `version` instead. |
 | `fullSemVer` | The full semantic version including pre-release info, e.g. `1.2.301-feature-my-feature.12`. |
@@ -91,7 +91,7 @@ branches:
 ## `gv-source` options
 
 | Source | GitVersion v5 | GitVersion v6 | Notes |
-|--------|---------------|---------------|-------|
+| ------ | ------------- | ------------- | ----- |
 | `actions` | ✅ via `gittools/actions@v3` | ✅ via `gittools/actions@v4` | Auto-selects the correct action version based on the detected spec. |
 | `dotnet` | ✅ | ✅ | Installs `GitVersion.Tool` at the correct major version. |
 | `container` | ✅ image tag `5.12.0` | ✅ image tag `latest` | Runs the official `gittools/gitversion` Docker image. |
