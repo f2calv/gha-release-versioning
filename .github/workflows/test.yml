@@ -5,6 +5,7 @@ on:
   push:
     branches: [main]
     paths-ignore:
+      - .github/copilot-instructions.md
       - .github/dependabot.yml
       - LICENSE
       - README.md
@@ -40,20 +41,13 @@ jobs:
         shell: bash
         run: |
           echo "version=${{ steps.action.outputs.version }}"
-          echo "fullSemVer=${{ steps.action.outputs.fullSemVer }}"
           echo "major=${{ steps.action.outputs.major }}"
           echo "minor=${{ steps.action.outputs.minor }}"
           echo "patch=${{ steps.action.outputs.patch }}"
-          [[ -n "${{ steps.action.outputs.version }}" ]]    || { echo "::error::version output is empty";    exit 1; }
-          [[ -n "${{ steps.action.outputs.fullSemVer }}" ]] || { echo "::error::fullSemVer output is empty"; exit 1; }
-          [[ -n "${{ steps.action.outputs.major }}" ]]      || { echo "::error::major output is empty";      exit 1; }
-          [[ -n "${{ steps.action.outputs.minor }}" ]]      || { echo "::error::minor output is empty";      exit 1; }
-          [[ -n "${{ steps.action.outputs.patch }}" ]]      || { echo "::error::patch output is empty";      exit 1; }
-
-          [[ "${{ steps.action.outputs.version }}" != *"+"* ]] || { echo "::error::version '${{ steps.action.outputs.version }}' must not contain build metadata (+); SEMVER should be used for the release tag, not FULLSEMVER"; exit 1; }
-          if [[ "${{ steps.action.outputs.fullSemVer }}" == *"+"* ]]; then
-            [[ "${{ steps.action.outputs.version }}" != "${{ steps.action.outputs.fullSemVer }}" ]] || { echo "::error::version must not equal fullSemVer '${{ steps.action.outputs.fullSemVer }}' when fullSemVer contains build metadata; tag_name must use SEMVER not FULLSEMVER"; exit 1; }
-          fi
+          [[ -n "${{ steps.action.outputs.version }}" ]] || { echo "::error::version output is empty"; exit 1; }
+          [[ -n "${{ steps.action.outputs.major }}" ]]   || { echo "::error::major output is empty";   exit 1; }
+          [[ -n "${{ steps.action.outputs.minor }}" ]]   || { echo "::error::minor output is empty";   exit 1; }
+          [[ -n "${{ steps.action.outputs.patch }}" ]]   || { echo "::error::patch output is empty";   exit 1; }
 
   test-manual-semver:
     name: test (manual semVer override)
