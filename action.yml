@@ -154,7 +154,7 @@ runs:
 
     # Create a GitHub Release for the computed version.
     - name: create release
-      uses: softprops/action-gh-release@v2
+      uses: softprops/action-gh-release@v3
       if: |
         steps.check-release-exists.outputs.ReleaseExists == 'false'
           && (github.ref == format('refs/heads/{0}', github.event.repository.default_branch))
