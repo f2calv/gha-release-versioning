@@ -40,6 +40,7 @@ jobs:
 | `gv-config` | No | `GitVersion.yml` | Path to the GitVersion configuration file. |
 | `gv-source` | No | `actions` | GitVersion installation source: `actions`, `dotnet`, or `container`. |
 | `dotnet-version` | No | `10.0.x` | .NET SDK version to install when `gv-source` is `dotnet`. |
+| `generate-release-notes` | No | `true` | Auto-generate release notes from merged PRs since the last release. |
 
 ## Outputs
 
