@@ -12,7 +12,6 @@ jobs:
       contents: write
     outputs:
       version: ${{ steps.release.outputs.version }}
-      fullSemVer: ${{ steps.release.outputs.fullSemVer }}
       major: ${{ steps.release.outputs.major }}
       minor: ${{ steps.release.outputs.minor }}
       patch: ${{ steps.release.outputs.patch }}
@@ -41,14 +40,13 @@ jobs:
 | `gv-config` | No | `GitVersion.yml` | Path to the GitVersion configuration file. |
 | `gv-source` | No | `actions` | GitVersion installation source: `actions`, `dotnet`, or `container`. |
 | `dotnet-version` | No | `10.0.x` | .NET SDK version to install when `gv-source` is `dotnet`. |
+| `generate-release-notes` | No | `true` | Auto-generate release notes from merged PRs since the last release. |
 
 ## Outputs
 
 | Output | Description |
 | ------ | ----------- |
-| `version` | The calculated semantic version, e.g. `1.2.301`. |
-| `semVer` | **Deprecated** — use `version` instead. |
-| `fullSemVer` | The full semantic version including pre-release info, e.g. `1.2.301-feature-my-feature.12`. |
+| `version` | The calculated semantic version, e.g. `1.2.301` or `1.2.301-feature-my-feature.12+56`. |
 | `major` | The major version component, e.g. `1`. |
 | `minor` | The minor version component, e.g. `2`. |
 | `patch` | The patch version component, e.g. `301`. |

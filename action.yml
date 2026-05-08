@@ -38,6 +38,11 @@ inputs:
     description: .NET SDK version to install when gv-source is 'dotnet'.
     type: string
     default: 10.0.x
+  generate-release-notes:
+    description: Auto-generate release notes from merged PRs since the last release.
+    required: false
+    type: boolean
+    default: true
 
 outputs:
   version:
@@ -162,6 +167,7 @@ runs:
       with:
         tag_name: ${{ inputs.tag-prefix }}${{ env.SEMVER }}
         name: ${{ env.FULLSEMVER }}
+        generate_release_notes: ${{ inputs.generate-release-notes }}
 
     # Create or move the rolling major and major.minor version tags to this commit.
     - name: git apply/move major tag
