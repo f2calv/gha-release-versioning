@@ -25,7 +25,7 @@ jobs:
         gv-source: [actions, dotnet, container]
         gv-config: ['.github/gitversion-v5.yml', 'GitVersion.yml']
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -55,7 +55,7 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
