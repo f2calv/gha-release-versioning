@@ -147,7 +147,7 @@ runs:
       id: check-release-exists
       with:
         GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
-        ReleaseName: ${{ env.SEMVER }}
+        ReleaseName: ${{ inputs.tag-prefix }}${{ env.SEMVER }}
 
     # Publish all version components as step outputs.
     - name: semver output
@@ -166,7 +166,7 @@ runs:
           && inputs.tag-and-release == 'true'
       with:
         tag_name: ${{ inputs.tag-prefix }}${{ env.SEMVER }}
-        name: ${{ env.FULLSEMVER }}
+        name: ${{ inputs.tag-prefix }}${{ env.SEMVER }}
         generate_release_notes: ${{ inputs.generate-release-notes }}
 
     # Create or move the rolling major and major.minor version tags to this commit.
