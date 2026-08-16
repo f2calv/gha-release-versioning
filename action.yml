@@ -72,7 +72,7 @@ runs:
       if: inputs.semVer == ''
       env:
         GV_CONFIG: ${{ inputs.gv-config }}
-      run: bash "${{ github.action_path }}/scripts/gitversion-config-check.sh"
+      run: bash "${{ github.action_path }}/.scripts/gitversion-config-check.sh"
 
     # Install GitVersion 5.x via gittools/actions@v3 (supports GV_SPEC 5.x only).
     - name: gitversion actions v5 (1 of 2)
@@ -118,7 +118,7 @@ runs:
       if: inputs.semVer == '' && inputs.gv-source == 'dotnet'
       env:
         GV_CONFIG: ${{ inputs.gv-config }}
-      run: bash "${{ github.action_path }}/scripts/gitversion-dotnet.sh"
+      run: bash "${{ github.action_path }}/.scripts/gitversion-dotnet.sh"
 
     # Run GitVersion inside the official Docker container; writes GitVersion.json.
     - name: gitversion container (1 of 1)
@@ -126,7 +126,7 @@ runs:
       if: inputs.semVer == '' && inputs.gv-source == 'container'
       env:
         GV_CONFIG: ${{ inputs.gv-config }}
-      run: bash "${{ github.action_path }}/scripts/gitversion-container.sh"
+      run: bash "${{ github.action_path }}/.scripts/gitversion-container.sh"
 
     # Select the final SemVer values from whichever source ran above (or parse
     # the manually supplied semVer input) and export them to $GITHUB_ENV.
@@ -140,7 +140,7 @@ runs:
         GV_ACTIONS_MAJOR: ${{ steps.gitversion_actions_v5.outputs.major || steps.gitversion_actions_v6.outputs.major }}
         GV_ACTIONS_MINOR: ${{ steps.gitversion_actions_v5.outputs.minor || steps.gitversion_actions_v6.outputs.minor }}
         GV_ACTIONS_PATCH: ${{ steps.gitversion_actions_v5.outputs.patch || steps.gitversion_actions_v6.outputs.patch }}
-      run: bash "${{ github.action_path }}/scripts/semver-select.sh"
+      run: bash "${{ github.action_path }}/.scripts/semver-select.sh"
 
     # Check whether a GitHub Release already exists for this version.
     - uses: f2calv/gha-check-release-exists@v2
@@ -155,7 +155,7 @@ runs:
       id: set_output
       env:
         RELEASE_EXISTS: ${{ steps.check-release-exists.outputs.ReleaseExists }}
-      run: bash "${{ github.action_path }}/scripts/semver-output.sh"
+      run: bash "${{ github.action_path }}/.scripts/semver-output.sh"
 
     # Create a GitHub Release for the computed version.
     - name: create release
@@ -179,4 +179,4 @@ runs:
           && inputs.tag-and-release == 'true'
       env:
         TAG_PREFIX: ${{ inputs.tag-prefix }}
-      run: bash "${{ github.action_path }}/scripts/git-tag.sh"
+      run: bash "${{ github.action_path }}/.scripts/git-tag.sh"
