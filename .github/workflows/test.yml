@@ -77,4 +77,3 @@ jobs:
           [[ "${{ steps.action.outputs.major }}"   == "2" ]]     || { echo "::error::major should be 2, got '${{ steps.action.outputs.major }}'";         exit 1; }
           [[ "${{ steps.action.outputs.minor }}"   == "3" ]]     || { echo "::error::minor should be 3, got '${{ steps.action.outputs.minor }}'";         exit 1; }
           [[ "${{ steps.action.outputs.patch }}"   == "4" ]]     || { echo "::error::patch should be 4, got '${{ steps.action.outputs.patch }}'";         exit 1; }
-
