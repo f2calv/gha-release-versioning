@@ -107,7 +107,7 @@ runs:
 
     # Install the .NET SDK so we can run the GitVersion global tool.
     - name: gitversion dotnet (1 of 2)
-      uses: actions/setup-dotnet@v5
+      uses: actions/setup-dotnet@v6
       if: inputs.semVer == '' && inputs.gv-source == 'dotnet'
       with:
         dotnet-version: ${{ inputs.dotnet-version }}
