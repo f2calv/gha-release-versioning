@@ -16,7 +16,7 @@ on:
 jobs:
   test-gitversion:
     name: test (${{ matrix.gv-source }}, ${{ matrix.gv-config }})
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
     strategy:
@@ -51,7 +51,7 @@ jobs:
 
   test-manual-semver:
     name: test (manual semVer override)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
     steps:
