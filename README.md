@@ -37,6 +37,7 @@ jobs:
 | `tag-prefix` | No | `v` | Prefix applied to the release lookup, tag, and title, e.g. `v1.0.1` or `workload/1.0.1`. |
 | `move-major-tag` | No | `true` | When `true`, moves rolling major (e.g. `v1`) and minor (e.g. `v1.2`) tags to the new release commit. |
 | `tag-and-release` | No | `true` | When `true`, creates a Git tag and a GitHub release. |
+| `release-branch` | No | `''` | Branch allowed to create tags and releases. When empty, uses the repository default branch. |
 | `gv-config` | No | `GitVersion.yml` | Path to the GitVersion configuration file. |
 | `gv-source` | No | `actions` | GitVersion installation source: `actions`, `dotnet`, or `container`. |
 | `dotnet-version` | No | `10.0.x` | .NET SDK version to install when `gv-source` is `dotnet`. |
