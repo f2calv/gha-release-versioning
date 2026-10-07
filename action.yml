@@ -175,6 +175,9 @@ runs:
       with:
         tag_name: ${{ inputs.tag-prefix }}${{ env.SEMVER }}
         name: ${{ inputs.tag-prefix }}${{ env.SEMVER }}
+        # Without this, action-gh-release anchors the new tag to the repo's default branch instead
+        # of the commit that triggered this run - breaking non-default release tracks entirely.
+        target_commitish: ${{ github.sha }}
         generate_release_notes: ${{ inputs.generate-release-notes }}
 
     # Create or move the rolling major and major.minor version tags to this commit.
