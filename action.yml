@@ -17,15 +17,20 @@ inputs:
     type: string
     default: v
   move-major-tag:
-    description: Create and/or move major version tag, e.g. when creating v1.0.2 then move v1 tag up from the v1.0.1 commit.
+    description: Create or move rolling major and major.minor tags, e.g. v1 and v1.2 for release v1.2.3.
     required: false
     type: boolean
     default: true
   tag-and-release:
-    description: Sets a Git tag and creates a corresponding release.
+    description: Create the full version tag and corresponding GitHub Release unless tag-only is true.
     required: false
     type: boolean
     default: true
+  tag-only:
+    description: Create only the full version tag; takes precedence over tag-and-release.
+    required: false
+    type: boolean
+    default: false
   release-branch:
     description: Branch allowed to create tags and releases; empty uses the repository default branch.
     required: false
@@ -163,7 +168,7 @@ runs:
       run: bash "${{ github.action_path }}/.scripts/semver-output.sh"
 
     # Create a GitHub Release for the computed version.
-    - name: create release
+    - name: create full tag+release
       uses: softprops/action-gh-release@v3
       if: |
         steps.check-release-exists.outputs.ReleaseExists == 'false'
@@ -172,6 +177,7 @@ runs:
             || (inputs.release-branch != ''
               && github.ref == format('refs/heads/{0}', inputs.release-branch)))
           && inputs.tag-and-release == 'true'
+          && inputs.tag-only == 'false'
       with:
         tag_name: ${{ inputs.tag-prefix }}${{ env.SEMVER }}
         name: ${{ inputs.tag-prefix }}${{ env.SEMVER }}
@@ -180,8 +186,24 @@ runs:
         target_commitish: ${{ github.sha }}
         generate_release_notes: ${{ inputs.generate-release-notes }}
 
-    # Create or move the rolling major and major.minor version tags to this commit.
-    - name: git apply/move major tag
+    # Create the immutable full version tag without a GitHub Release when tag-only mode is selected.
+    - name: create full tag only
+      shell: bash
+      if: |
+        steps.check-release-exists.outputs.ReleaseExists == 'false'
+          && ((inputs.release-branch == ''
+              && github.ref == format('refs/heads/{0}', github.event.repository.default_branch))
+            || (inputs.release-branch != ''
+              && github.ref == format('refs/heads/{0}', inputs.release-branch)))
+          && inputs.tag-only == 'true'
+      env:
+        TAG_PREFIX: ${{ inputs.tag-prefix }}
+        TARGET_SHA: ${{ github.sha }}
+      run: bash "${{ github.action_path }}/.scripts/create-version-tag.sh"
+
+    # Create or force-move rolling major (e.g. v1) and major.minor (e.g. v1.2)
+    # aliases to the checked-out commit. One of the preceding steps creates the full version tag.
+    - name: create/move rolling version tags
       shell: bash
       if: |
         steps.check-release-exists.outputs.ReleaseExists == 'false'
@@ -190,7 +212,7 @@ runs:
             || (inputs.release-branch != ''
               && github.ref == format('refs/heads/{0}', inputs.release-branch)))
           && inputs.move-major-tag == 'true'
-          && inputs.tag-and-release == 'true'
+          && (inputs.tag-and-release == 'true' || inputs.tag-only == 'true')
       env:
         TAG_PREFIX: ${{ inputs.tag-prefix }}
-      run: bash "${{ github.action_path }}/.scripts/git-tag.sh"
+      run: bash "${{ github.action_path }}/.scripts/move-rolling-version-tags.sh"

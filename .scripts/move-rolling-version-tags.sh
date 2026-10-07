@@ -1,19 +1,22 @@
 #!/usr/bin/env bash
-set -euo pipefail
 
-# Create or move the rolling major and major.minor version tags to the current
-# commit.
+# Create or force-move the rolling major and major.minor version tag aliases to
+# the checked-out commit. The full version tag is created by action-gh-release.
 #
 # This lets callers pin to a major or minor granularity (e.g. @v1 or @v1.2)
 # rather than having to update to every patch release.
 #
+# Required environment variables: TAG_PREFIX, MAJOR, MINOR
 # MAJOR and MINOR are loaded from $GITHUB_ENV by the runner between steps.
-# TAG_PREFIX is injected via the step's env: block from the tag-prefix input.
 
-# Validate required environment variables
-: "${TAG_PREFIX:?TAG_PREFIX is required}"
-: "${MAJOR:?MAJOR is required}"
-: "${MINOR:?MINOR is required}"
+for var in TAG_PREFIX MAJOR MINOR; do
+	if [[ -z "${!var:-}" ]]; then
+		echo "::error::Required environment variable $var is not set."
+		exit 1
+	fi
+done
+
+set -euo pipefail
 
 git config user.name "GitHub Actions Bot"
 git config user.email "github-actions[bot]@users.noreply.github.com"
