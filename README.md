@@ -1,6 +1,6 @@
 # GitHub Action: Release Versioning
 
-This action calculates the semantic version of the repository using the [GitVersion](https://gitversion.net/) tool, and then creates a Git tag and GitHub release. Optionally you can pass in a pre-determined semantic version and that will be used instead.
+This action calculates the semantic version of the repository using the [GitVersion](https://gitversion.net/) tool, and then creates a Git tag with an optional GitHub release. You can also pass in a pre-determined semantic version instead.
 
 ## Usage
 
@@ -28,20 +28,41 @@ jobs:
 
 > **Note:** `fetch-depth: 0` is required so GitVersion can read the full commit history to calculate the version.
 
+## Publishing
+
+Publishing is allowed only from `release-branch`. When that input is empty, the repository's default branch is used. The full version tag always targets the commit that triggered the workflow, including when publishing from a non-default branch.
+
+To publish the full version tag without creating a GitHub Release:
+
+```yaml
+with:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  tag-only: true
+```
+
+| `tag-and-release` | `tag-only` | Result |
+| --- | --- | --- |
+| `true` | `false` | Create the full version tag and GitHub Release. |
+| Any | `true` | Create only the full version tag. |
+| `false` | `false` | Calculate the version without publishing it. |
+
+Full version tags, such as `v1.2.3`, are immutable. Re-running tag-only mode succeeds when the tag already targets the same commit and fails rather than moving a conflicting tag. When `move-major-tag` is enabled, the rolling major and major.minor aliases, such as `v1` and `v1.2`, are created or force-moved to the published commit.
+
 ## Inputs
 
 | Input | Required | Default | Description |
 | ----- | -------- | ------- | ----------- |
-| `GITHUB_TOKEN` | Yes | — | GitHub token for API access and creating releases. |
+| `GITHUB_TOKEN` | Yes | — | GitHub token for release lookup and publishing tags and releases. |
 | `semVer` | No | `''` | Pass in an externally generated semantic version. When empty, GitVersion is used. |
 | `tag-prefix` | No | `v` | Prefix applied to the release lookup, tag, and title, e.g. `v1.0.1` or `workload/1.0.1`. |
-| `move-major-tag` | No | `true` | When `true`, moves rolling major (e.g. `v1`) and minor (e.g. `v1.2`) tags to the new release commit. |
-| `tag-and-release` | No | `true` | When `true`, creates a Git tag and a GitHub release. |
+| `move-major-tag` | No | `true` | When `true`, creates or moves rolling major (e.g. `v1`) and major.minor (e.g. `v1.2`) tags to the published commit. |
+| `tag-and-release` | No | `true` | Creates the full version tag and corresponding GitHub Release unless `tag-only` is `true`. |
+| `tag-only` | No | `false` | Creates only the full version tag and takes precedence over `tag-and-release`. |
 | `release-branch` | No | `''` | Branch allowed to create tags and releases. When empty, uses the repository default branch. |
 | `gv-config` | No | `GitVersion.yml` | Path to the GitVersion configuration file. |
 | `gv-source` | No | `actions` | GitVersion installation source: `actions`, `dotnet`, or `container`. |
 | `dotnet-version` | No | `10.0.x` | .NET SDK version to install when `gv-source` is `dotnet`. |
-| `generate-release-notes` | No | `true` | Auto-generate release notes from merged PRs since the last release. |
+| `generate-release-notes` | No | `true` | Auto-generate release notes in full tag+release mode. |
 
 ## Outputs
 
@@ -51,7 +72,7 @@ jobs:
 | `major` | The major version component, e.g. `1`. |
 | `minor` | The minor version component, e.g. `2`. |
 | `patch` | The patch version component, e.g. `301`. |
-| `release-exists` | `true` if a GitHub Release already exists for this version, otherwise `false`. |
+| `release-exists` | `true` if a GitHub Release already exists for this version, otherwise `false`; tag existence does not affect this output. |
 
 ## GitVersion configuration
 
