@@ -1,22 +1,27 @@
-# GitHub Action: Release Versioning
+# gha-release-versioning
 
-This action calculates the semantic version of the repository using the [GitVersion](https://gitversion.net/) tool, and then creates a Git tag with an optional GitHub release. You can also pass in a pre-determined semantic version instead.
+`gha-release-versioning` is a composite GitHub Action for calculating a repository's semantic version with [GitVersion](https://gitversion.net/), or accepting a supplied version, and optionally publishing a tag and GitHub Release.
+
+[![Marketplace](https://img.shields.io/badge/Marketplace-gha--release--versioning-blue)](https://github.com/marketplace/actions/gha-release-versioning)
+[![CI](https://github.com/f2calv/gha-release-versioning/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/f2calv/gha-release-versioning/actions/workflows/ci.yml)
+
+The public step contract is [action.yml](https://github.com/f2calv/gha-release-versioning/blob/main/action.yml). Use `@v1` for the published floating-major Action reference; [v1.4.5](https://github.com/f2calv/gha-release-versioning/releases/tag/v1.4.5) is an available immutable release. Do not consume floating minor or patch aliases.
 
 ## Usage
 
 ```yaml
 jobs:
   release:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
-      contents: write
+      contents: read
     outputs:
       version: ${{ steps.release.outputs.version }}
       major: ${{ steps.release.outputs.major }}
       minor: ${{ steps.release.outputs.minor }}
       patch: ${{ steps.release.outputs.patch }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0   # required for GitVersion to read full history
 
@@ -24,19 +29,29 @@ jobs:
         id: release
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          tag-and-release: false
+          tag-prefix: ''
+          move-major-tag: false
 ```
 
 > **Note:** `fetch-depth: 0` is required so GitVersion can read the full commit history to calculate the version.
+
+This caller-job fragment calculates without publishing. It requires Bash, Git and `jq`; `ubuntu-24.04` supplies them. The default `actions` source installs GitVersion itself. Use a full-history authenticated checkout even when supplying `semVer` if the Action will publish.
+
+Read the calculated version in later jobs as `${{ needs.release.outputs.version }}` after declaring `needs: release`. A supplied `semVer` should be a plain `X.Y.Z`: the manual component parser uses string splitting, not full SemVer validation, so do not rely on it to parse pre-release/build metadata correctly.
 
 ## Publishing
 
 Publishing is allowed only from `release-branch`. When that input is empty, the repository's default branch is used. The full version tag always targets the commit that triggered the workflow, including when publishing from a non-default branch.
 
-To publish the full version tag without creating a GitHub Release:
+For a library, application, workflow collection or infrastructure repository, publish plain immutable `X.Y.Z` tags without aliases. Give the calling job `contents: write` and use this step-input fragment:
 
 ```yaml
 with:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  semVer: 1.2.3
+  tag-prefix: ''
+  move-major-tag: false
   tag-only: true
 ```
 
@@ -46,7 +61,11 @@ with:
 | Any | `true` | Create only the full version tag. |
 | `false` | `false` | Calculate the version without publishing it. |
 
-Full version tags, such as `v1.2.3`, are immutable. Re-running tag-only mode succeeds when the tag already targets the same commit and fails rather than moving a conflicting tag. When `move-major-tag` is enabled, the rolling major and major.minor aliases, such as `v1` and `v1.2`, are created or force-moved to the published commit.
+Full version tags are intended to be immutable. The [tag-only script](https://github.com/f2calv/gha-release-versioning/blob/main/.scripts/create-version-tag.sh) checks an existing tag's target and fails on a conflicting commit. Release mode delegates tag creation to `softprops/action-gh-release`; it does not run that explicit conflict check. `release-exists` is checked before publishing, and an existing Release skips both publication and alias movement.
+
+Only GitHub Action repositories use `vX.Y.Z` plus a floating `vMAJOR` reference. **Current implementation limitation:** [the alias script](https://github.com/f2calv/gha-release-versioning/blob/main/.scripts/move-rolling-version-tags.sh) moves both major and major.minor aliases and offers no major-only switch. Keep `move-major-tag: false` to avoid creating unsupported minor aliases; Action maintainers need a separately controlled major-only publication step until that implementation is corrected. This README does not authorize moving published immutable tags.
+
+Release creation uses `softprops/action-gh-release`'s default `github.token`; the `GITHUB_TOKEN` input is explicitly forwarded to release lookup. A custom lookup token is not automatically forwarded to the release-creation action or checkout remote. Provision authentication consistently if not using the default token.
 
 ## Inputs
 
@@ -55,7 +74,7 @@ Full version tags, such as `v1.2.3`, are immutable. Re-running tag-only mode suc
 | `GITHUB_TOKEN` | Yes | — | GitHub token for release lookup and publishing tags and releases. |
 | `semVer` | No | `''` | Pass in an externally generated semantic version. When empty, GitVersion is used. |
 | `tag-prefix` | No | `v` | Prefix applied to the release lookup, tag, and title, e.g. `v1.0.1` or `workload/1.0.1`. |
-| `move-major-tag` | No | `true` | When `true`, creates or moves rolling major (e.g. `v1`) and major.minor (e.g. `v1.2`) tags to the published commit. |
+| `move-major-tag` | No | `true` | Moves both major and minor aliases in the current implementation; set `false` for the supported immutable-only path. |
 | `tag-and-release` | No | `true` | Creates the full version tag and corresponding GitHub Release unless `tag-only` is `true`. |
 | `tag-only` | No | `false` | Creates only the full version tag and takes precedence over `tag-and-release`. |
 | `release-branch` | No | `''` | Branch allowed to create tags and releases. When empty, uses the repository default branch. |
@@ -68,7 +87,7 @@ Full version tags, such as `v1.2.3`, are immutable. Re-running tag-only mode suc
 
 | Output | Description |
 | ------ | ----------- |
-| `version` | The calculated semantic version, e.g. `1.2.301` or `1.2.301-feature-my-feature.12+56`. |
+| `version` | GitVersion `FullSemVer` (including metadata when present), or the supplied `semVer`. Publication uses GitVersion `SemVer`, which can differ. |
 | `major` | The major version component, e.g. `1`. |
 | `minor` | The minor version component, e.g. `2`. |
 | `patch` | The patch version component, e.g. `301`. |
@@ -76,9 +95,9 @@ Full version tags, such as `v1.2.3`, are immutable. Re-running tag-only mode suc
 
 ## GitVersion configuration
 
-A `GitVersion.yml` file is required in the repository root when `gv-source` is used. The configuration schema changed between GitVersion v5 and v6 — the main difference is that branch pre-release labels are configured with `label:` in v6 (previously `tag:` in v5).
+When `semVer` is empty, provide the configuration selected by `gv-config` (default: `GitVersion.yml` in the repository root). A supplied `semVer` skips GitVersion entirely. The configuration schema differs between v5 and v6: branch pre-release labels use `label:` in v6 and `tag:` in v5.
 
-The action **auto-detects** the GitVersion version from the config file: if the config contains `label:` keys under `branches`, `6.x` is used; if it contains `tag:` keys, `5.x` is used. There is no need to specify the version manually.
+The [configuration check](https://github.com/f2calv/gha-release-versioning/blob/main/.scripts/gitversion-config-check.sh) chooses v6 if it finds a line beginning with `label:` (allowing indentation), otherwise v5 if it finds `tag:`, otherwise v6. This is text detection, not schema validation. Keep the file consistent with the chosen GitVersion major.
 
 ### GitVersion v5
 
@@ -106,7 +125,7 @@ branches:
     label: useBranchName
 ```
 
-> **Note:** `tag:` in v5 branch config is a pre-release label setting and is not related to Git tags. In v6 this field was renamed to `label:` to avoid confusion. The `mode` value also changed: `MainLine` in v5 became `ContinuousDeployment` in v6 (both produce clean versions on the default branch without requiring a pre-existing tag).
+The snippets illustrate the schema distinction, not equivalent versioning strategies. Choose a GitVersion mode for your repository; v5 `MainLine` and v6 `ContinuousDeployment` are not interchangeable guarantees.
 
 ## `gv-source` options
 
@@ -116,6 +135,28 @@ branches:
 | `dotnet` | ✅ | ✅ | Installs `GitVersion.Tool` at the correct major version. |
 | `container` | ✅ image tag `5.12.0` | ✅ image tag `latest` | Runs the official `gittools/gitversion` Docker image. |
 
+The container source needs a working Docker daemon. The dotnet source installs the requested SDK and GitVersion global tool. No source mode removes the token requirement: version-only execution still looks up an existing GitHub Release.
+
+## Deployment Flow
+
+```mermaid
+flowchart TD
+    A(["Caller: full-history checkout"]) --> B{"semVer supplied?"}
+    B -->|No| C["Detect config; run GitVersion via actions, dotnet or container"]
+    B -->|Yes| D["Select version components"]
+    C --> D
+    D --> E["Look up GitHub Release; expose outputs"]
+    E --> F{"No Release, allowed branch, publish enabled?"}
+    F -->|Yes| G{"tag-only?"}
+    G -->|Yes| H["Check and create full tag at triggering SHA"]
+    G -->|No| I["Create full tag and GitHub Release"]
+    H --> J["Optional alias movement: see limitation"]
+    I --> J
+    F -->|No| K(["Calculation only"])
+```
+
+See the [public reusable-workflow caller](https://github.com/f2calv/gha-workflows/blob/main/.github/workflows/gha-release-versioning.yml) for job-level output forwarding. That wrapper exposes fewer controls than this Action.
+
 ## License
 
-MIT
+[MIT](https://github.com/f2calv/gha-release-versioning/blob/main/LICENSE)
