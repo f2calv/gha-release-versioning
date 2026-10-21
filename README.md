@@ -5,7 +5,7 @@
 [![Marketplace](https://img.shields.io/badge/Marketplace-gha--release--versioning-blue)](https://github.com/marketplace/actions/gha-release-versioning)
 [![CI](https://github.com/f2calv/gha-release-versioning/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/f2calv/gha-release-versioning/actions/workflows/ci.yml)
 
-The public step contract is [action.yml](https://github.com/f2calv/gha-release-versioning/blob/main/action.yml). Use `@v1` for the published floating-major Action reference; [v1.4.5](https://github.com/f2calv/gha-release-versioning/releases/tag/v1.4.5) is an available immutable release. Do not consume floating minor or patch aliases.
+The public step contract is [action.yml](https://github.com/f2calv/gha-release-versioning/blob/main/action.yml). Use `@v1` for the published floating-major Action reference; [v1.4.5](https://github.com/f2calv/gha-release-versioning/releases/tag/v1.4.5) is an available immutable release. A floating `vMAJOR.MINOR` alias, such as `@v1.4`, is also published for callers that want only patch releases of one minor line.
 
 ## Usage
 
@@ -44,7 +44,7 @@ Read the calculated version in later jobs as `${{ needs.release.outputs.version 
 
 Publishing is allowed only from `release-branch`. When that input is empty, the repository's default branch is used. The full version tag always targets the commit that triggered the workflow, including when publishing from a non-default branch.
 
-For a library, application, workflow collection or infrastructure repository, publish plain immutable `X.Y.Z` tags without aliases. Give the calling job `contents: write` and use this step-input fragment:
+For a library, application or infrastructure repository, publish plain immutable `X.Y.Z` tags without aliases. Give the calling job `contents: write` and use this step-input fragment:
 
 ```yaml
 with:
@@ -63,7 +63,7 @@ with:
 
 Full version tags are intended to be immutable. The [tag-only script](https://github.com/f2calv/gha-release-versioning/blob/main/.scripts/create-version-tag.sh) checks an existing tag's target and fails on a conflicting commit. Release mode delegates tag creation to `softprops/action-gh-release`; it does not run that explicit conflict check. `release-exists` is checked before publishing, and an existing Release skips both publication and alias movement.
 
-Only GitHub Action repositories use `vX.Y.Z` plus a floating `vMAJOR` reference. **Current implementation limitation:** [the alias script](https://github.com/f2calv/gha-release-versioning/blob/main/.scripts/move-rolling-version-tags.sh) moves both major and major.minor aliases and offers no major-only switch. Keep `move-major-tag: false` to avoid creating unsupported minor aliases; Action maintainers need a separately controlled major-only publication step until that implementation is corrected. This README does not authorize moving published immutable tags.
+Only GitHub Action repositories use `vX.Y.Z` tags with floating aliases. With `move-major-tag: true`, [the alias script](https://github.com/f2calv/gha-release-versioning/blob/main/.scripts/move-rolling-version-tags.sh) moves the `vMAJOR` and `vMAJOR.MINOR` aliases to the release commit. This README does not authorize moving published immutable tags.
 
 Release creation uses `softprops/action-gh-release`'s default `github.token`; the `GITHUB_TOKEN` input is explicitly forwarded to release lookup. A custom lookup token is not automatically forwarded to the release-creation action or checkout remote. Provision authentication consistently if not using the default token.
 
@@ -74,7 +74,7 @@ Release creation uses `softprops/action-gh-release`'s default `github.token`; th
 | `GITHUB_TOKEN` | Yes | — | GitHub token for release lookup and publishing tags and releases. |
 | `semVer` | No | `''` | Pass in an externally generated semantic version. When empty, GitVersion is used. |
 | `tag-prefix` | No | `v` | Prefix applied to the release lookup, tag, and title, e.g. `v1.0.1` or `workload/1.0.1`. |
-| `move-major-tag` | No | `true` | Moves both major and minor aliases in the current implementation; set `false` for the supported immutable-only path. |
+| `move-major-tag` | No | `true` | Moves the floating `vMAJOR` and `vMAJOR.MINOR` aliases to the release commit; set `false` outside Action repositories. |
 | `tag-and-release` | No | `true` | Creates the full version tag and corresponding GitHub Release unless `tag-only` is `true`. |
 | `tag-only` | No | `false` | Creates only the full version tag and takes precedence over `tag-and-release`. |
 | `release-branch` | No | `''` | Branch allowed to create tags and releases. When empty, uses the repository default branch. |
@@ -150,7 +150,7 @@ flowchart TD
     F -->|Yes| G{"tag-only?"}
     G -->|Yes| H["Check and create full tag at triggering SHA"]
     G -->|No| I["Create full tag and GitHub Release"]
-    H --> J["Optional alias movement: see limitation"]
+    H --> J["Optionally move vMAJOR and vMAJOR.MINOR aliases"]
     I --> J
     F -->|No| K(["Calculation only"])
 ```

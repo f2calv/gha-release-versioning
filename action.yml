@@ -16,6 +16,8 @@ inputs:
     required: false
     type: string
     default: v
+  # TODO: the name understates its scope, as it moves vMAJOR.MINOR too. Low priority: behaviour
+  # is documented and intended; renaming (e.g. move-rolling-tags) is a breaking v2 input change.
   move-major-tag:
     description: Create or move rolling major and major.minor tags, e.g. v1 and v1.2 for release v1.2.3.
     required: false
