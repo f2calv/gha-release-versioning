@@ -9,51 +9,41 @@ inputs:
   semVer:
     description: Pass in an externally generated semantic version, if empty then uses GitVersion.
     required: false
-    type: string
     default: ''
   tag-prefix:
     description: Prefix the semver, e.g. 1.0.1 or v1.0.1
     required: false
-    type: string
     default: v
   # TODO: the name understates its scope, as it moves vMAJOR.MINOR too. Low priority: behaviour
   # is documented and intended; renaming (e.g. move-rolling-tags) is a breaking v2 input change.
   move-major-tag:
     description: Create or move rolling major and major.minor tags, e.g. v1 and v1.2 for release v1.2.3.
     required: false
-    type: boolean
     default: true
   tag-and-release:
     description: Create the full version tag and corresponding GitHub Release unless tag-only is true.
     required: false
-    type: boolean
     default: true
   tag-only:
     description: Create only the full version tag; takes precedence over tag-and-release.
     required: false
-    type: boolean
     default: false
   release-branch:
     description: Branch allowed to create tags and releases; empty uses the repository default branch.
     required: false
-    type: string
     default: ''
   gv-config:
     description: Configuration filename that GitVersion will use.
-    type: string
     default: GitVersion.yml
   gv-source:
     description: Choose an installation source for GitVersion, options include container, dotnet & actions.
-    type: string
     default: actions
   dotnet-version:
     description: .NET SDK version to install when gv-source is 'dotnet'.
-    type: string
     default: 10.0.x
   generate-release-notes:
     description: Auto-generate release notes from merged PRs since the last release.
     required: false
-    type: boolean
     default: true
 
 outputs:
