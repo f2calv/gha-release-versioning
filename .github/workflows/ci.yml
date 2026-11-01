@@ -40,16 +40,69 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           tag-and-release: false
 
-  test:
-    needs: [versioning]
+  test-gitversion:
+    name: test (${{ matrix.gv-source }}, ${{ matrix.gv-config }})
     runs-on: ubuntu-24.04
-    permissions: {}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        gv-source: [actions, dotnet, container]
+        gv-config: ['.github/gitversion-v5.yml', 'GitVersion.yml']
     steps:
-      - run: |
-          echo "version=${{ needs.versioning.outputs.version }}"
-          echo "major=${{ needs.versioning.outputs.major }}"
-          echo "minor=${{ needs.versioning.outputs.minor }}"
-          echo "patch=${{ needs.versioning.outputs.patch }}"
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: ./
+        id: action
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          gv-source: ${{ matrix.gv-source }}
+          gv-config: ${{ matrix.gv-config }}
+          tag-and-release: false
+
+      - name: assert outputs
+        shell: bash
+        run: |
+          echo "version=${{ steps.action.outputs.version }}"
+          echo "major=${{ steps.action.outputs.major }}"
+          echo "minor=${{ steps.action.outputs.minor }}"
+          echo "patch=${{ steps.action.outputs.patch }}"
+          [[ -n "${{ steps.action.outputs.version }}" ]] || { echo "::error::version output is empty"; exit 1; }
+          [[ -n "${{ steps.action.outputs.major }}" ]]   || { echo "::error::major output is empty";   exit 1; }
+          [[ -n "${{ steps.action.outputs.minor }}" ]]   || { echo "::error::minor output is empty";   exit 1; }
+          [[ -n "${{ steps.action.outputs.patch }}" ]]   || { echo "::error::patch output is empty";   exit 1; }
+
+  test-manual-semver:
+    name: test (manual semVer override)
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: ./
+        id: action
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          semVer: '2.3.4'
+          tag-and-release: false
+
+      - name: assert outputs
+        shell: bash
+        run: |
+          echo "version=${{ steps.action.outputs.version }}"
+          echo "major=${{ steps.action.outputs.major }}"
+          echo "minor=${{ steps.action.outputs.minor }}"
+          echo "patch=${{ steps.action.outputs.patch }}"
+          [[ "${{ steps.action.outputs.version }}" == "2.3.4" ]] || { echo "::error::version should be 2.3.4, got '${{ steps.action.outputs.version }}'"; exit 1; }
+          [[ "${{ steps.action.outputs.major }}"   == "2" ]]     || { echo "::error::major should be 2, got '${{ steps.action.outputs.major }}'";         exit 1; }
+          [[ "${{ steps.action.outputs.minor }}"   == "3" ]]     || { echo "::error::minor should be 3, got '${{ steps.action.outputs.minor }}'";         exit 1; }
+          [[ "${{ steps.action.outputs.patch }}"   == "4" ]]     || { echo "::error::patch should be 4, got '${{ steps.action.outputs.patch }}'";         exit 1; }
 
   validate:
     needs: [versioning]
@@ -72,7 +125,7 @@ jobs:
           ' README.md
 
   release:
-    needs: [lint, versioning, test, validate]
+    needs: [lint, versioning, test-gitversion, test-manual-semver, validate]
     if: needs.versioning.outputs.release-exists == 'false'
       && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
     runs-on: ubuntu-24.04
